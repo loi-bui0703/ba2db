@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (Node ${{ matrix.node }} / ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: ['18', '20', '22']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: node test/run.mjs
+
+  shellcheck:
+    name: Shell scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run shellcheck
+        run: |
+          sudo apt-get update && sudo apt-get install -y shellcheck
+          shellcheck install.sh skill/scripts/*.sh
+
+  install-matrix:
+    name: Install smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Install into every host, then uninstall
+        run: |
+          set -euo pipefail
+          for host in claude-code cursor codex copilot opencode generic; do
+            work="$(mktemp -d)"
+            ( cd "$work" && node "$GITHUB_WORKSPACE/bin/ba2db.mjs" install --host "$host" --project -y --force )
+            ( cd "$work" && node "$GITHUB_WORKSPACE/bin/ba2db.mjs" uninstall --host "$host" --project )
+            echo "✓ $host"
+          done
+
+  package:
+    name: Package contents
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Verify the published tarball carries the skill
+        run: |
+          npm pack --dry-run --json > pack.json
+          node -e "
+            const f = JSON.parse(require('fs').readFileSync('pack.json','utf8'))[0].files.map(x=>x.path);
+            const need = ['skill/SKILL.md','bin/ba2db.mjs','src/install.mjs','LICENSE'];
+            const missing = need.filter(n => !f.includes(n));
+            if (missing.length) { console.error('Missing from tarball:', missing); process.exit(1); }
+            console.log('Tarball OK —', f.length, 'files');
+          "

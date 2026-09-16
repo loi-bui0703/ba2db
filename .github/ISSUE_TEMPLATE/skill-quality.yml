@@ -1,0 +1,50 @@
+name: Skill quality — the agent produced a bad design
+description: The workflow ran, but the output was wrong, incomplete, or low quality.
+title: "[quality] "
+labels: ["skill-quality"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the most valuable kind of issue for this project. The skill is
+        prose that steers a model — when it steers badly we need the specifics.
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Which stage went wrong?
+      options:
+        - "0 — Intake & scoping"
+        - "1 — Requirements extraction"
+        - "2 — Conceptual model"
+        - "3 — Logical design"
+        - "4 — Physical design"
+        - "5 — Review & handoff"
+        - "Not stage-specific"
+    validations: { required: true }
+  - type: input
+    id: model
+    attributes:
+      label: Model and host
+      placeholder: "e.g. Claude Opus 5 on Claude Code / GPT-x on Cursor"
+    validations: { required: true }
+  - type: textarea
+    id: input
+    attributes:
+      label: BA input
+      description: The relevant excerpt, anonymised. Do not paste client data.
+    validations: { required: true }
+  - type: textarea
+    id: actual
+    attributes:
+      label: What the agent produced
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes:
+      label: What it should have produced, and why
+    validations: { required: true }
+  - type: textarea
+    id: suspected
+    attributes:
+      label: Which instruction do you think is at fault?
+      description: Optional — a file path in `skill/` is enough.

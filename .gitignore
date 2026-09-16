@@ -1,0 +1,9 @@
+node_modules/
+*.log
+.DS_Store
+.env
+.env.local
+
+# Local design work — never commit a user's project artifacts
+workspace/
+ba2db-workspace/

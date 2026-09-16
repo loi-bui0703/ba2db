@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or idea
+    url: https://github.com/loi-bui0703/ba2db/discussions
+    about: Ask how to use ba2db, or propose something before opening an issue.

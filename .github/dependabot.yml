@@ -1,0 +1,8 @@
+version: 2
+updates:
+  # This package has zero runtime dependencies by design — the only thing
+  # to keep current is the CI actions themselves.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"

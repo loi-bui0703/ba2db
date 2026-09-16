@@ -1,0 +1,29 @@
+name: Host support request
+description: Ask for support for an agent platform ba2db does not install into yet.
+title: "[host] "
+labels: ["host-support"]
+body:
+  - type: input
+    id: host
+    attributes:
+      label: Which agent platform?
+    validations: { required: true }
+  - type: input
+    id: config
+    attributes:
+      label: Where does it read its instructions from?
+      placeholder: "e.g. ~/.foo/config.json, or .foo/rules/*.md"
+    validations: { required: true }
+  - type: textarea
+    id: format
+    attributes:
+      label: Config format
+      description: A minimal working example of a rule/skill for that platform.
+      render: markdown
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Can you help?
+      options:
+        - label: I can test a PR on this platform
+        - label: I can open the PR myself (see CONTRIBUTING.md → Adding a host)

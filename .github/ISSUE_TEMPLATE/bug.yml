@@ -1,0 +1,34 @@
+name: Bug — CLI or installer
+description: Something in the CLI, installer, or repo tooling is broken.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: ba2db version
+      placeholder: "npx ba2db --version"
+    validations: { required: true }
+  - type: input
+    id: env
+    attributes:
+      label: OS and Node version
+      placeholder: "macOS 15 / Node 20.11"
+    validations: { required: true }
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Exact commands, please.
+      render: shell
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual
+    validations: { required: true }
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `npx ba2db doctor`
+      render: shell
