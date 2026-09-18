@@ -85,13 +85,12 @@ cleanup_docker() {
 }
 
 wait_ready() {
-  local i
   # Phải thử KẾT NỐI ĐƯỢC VÀO ĐÚNG DATABASE ĐÍCH, không chỉ "server có sống".
   # `pg_isready` trả OK ngay cả trên server tạm mà initdb dựng lên trước khi
   # POSTGRES_DB được tạo — chạy DDL vào lúc đó fail với "database does not
   # exist", và trông y như một lỗi DDL. Lỗi hạ tầng không được phép giả dạng
   # lỗi thiết kế.
-  for i in $(seq 1 60); do
+  for _ in $(seq 1 60); do
     case "$DBMS" in
       postgres) docker exec "$CONTAINER" psql -U postgres -d ddlcheck -c 'SELECT 1' >/dev/null 2>&1 && return 0 ;;
       mysql)    docker exec "$CONTAINER" mysql -uroot -proot -e 'USE ddlcheck; SELECT 1;' >/dev/null 2>&1 && return 0 ;;
@@ -216,7 +215,7 @@ run_docker() {
 run_local() {
   case "$DBMS" in
     postgres)
-      have psql && have createdb || {
+      if ! have psql || ! have createdb; then
         cat >&2 <<'MSG'
 Không có docker, cũng không có psql/createdb trên máy.
 
@@ -229,8 +228,11 @@ Cách có môi trường để chạy (chọn một):
   * khởi động docker (Docker Desktop / colima start) rồi chạy lại lệnh này
   * cài postgres client: brew install libpq   (hoặc apt install postgresql-client)
 MSG
-        exit 2; }
-      local db="ddlcheck_$(date +%s)"
+        exit 2
+      fi
+      # SC2155: khai báo và gán riêng, để mã lỗi của `date` không bị `local` che.
+      local db
+      db="ddlcheck_$(date +%s)"
       echo "→ local psql ($(psql --version | awk '{print $3}')) — LƯU Ý: có thể khác phiên bản đích"
       createdb "$db"
       trap 'dropdb --if-exists "$db" >/dev/null 2>&1 || true' EXIT
@@ -241,10 +243,12 @@ MSG
       fi
       ;;
     mysql)
-      have mysql || {
+      if ! have mysql; then
         echo "Không có docker, cũng không có mysql client → DDL CHƯA ĐƯỢC CHẠY THỬ. Phải báo rõ." >&2
-        exit 2; }
-      local db="ddlcheck_$(date +%s)"
+        exit 2
+      fi
+      local db
+      db="ddlcheck_$(date +%s)"
       echo "→ local mysql — LƯU Ý: có thể khác phiên bản đích"
       mysql -e "CREATE DATABASE \`$db\`;"
       trap 'mysql -e "DROP DATABASE IF EXISTS \`$db\`;" >/dev/null 2>&1 || true' EXIT
