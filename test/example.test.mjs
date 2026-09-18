@@ -13,12 +13,14 @@ test('example contains every artifact the workflow promises', () => {
     'README.md',
     'ba-docs/BA-01-sales.md',
     '01-data-requirements.md',
+    '01b-dbms-decision.md',
     '02-conceptual-erd.md',
     '03-logical-schema.md',
     '04-schema.sql',
     '04-index-plan.md',
     '05-review-report.md',
     '05-traceability-matrix.md',
+    '05-app-enforced-rules.md',
   ]) {
     assert.ok(existsSync(join(EX, f)), `missing example artifact: ${f}`);
   }
@@ -66,4 +68,24 @@ test('example DDL cites the requirement IDs it implements', () => {
   for (const id of ['BR-001', 'BR-002', 'BR-004', 'BR-005', 'VP-010', 'NF-002']) {
     assert.match(sql, new RegExp(id), `DDL never mentions ${id}`);
   }
+});
+
+test('example shows the DBMS being chosen, not defaulted', () => {
+  const adr = read('01b-dbms-decision.md');
+  // An ADR whose only content is its conclusion is a default wearing a suit.
+  assert.match(adr, /Candidates|Ứng viên/, 'must list the candidates considered');
+  assert.match(adr, /Oracle/, 'must say which candidate was rejected before comparison, and why');
+  assert.match(adr, /provisional/, 'must show the honest state when the deciding constraint is unanswered');
+  assert.match(adr, /Portability budget/, 'must price the cost of being wrong about the engine');
+  // The comparison came out even — the example must not pretend otherwise.
+  assert.match(adr, /bằng nhau/, 'an even comparison must be reported as even');
+});
+
+test('the example passes its own mechanical checker', async () => {
+  // Dogfooding: if the shipped reference run cannot pass check-design.sh,
+  // the checker is wrong or the example is — either way it ships broken.
+  const { spawnSync } = await import('node:child_process');
+  const script = join(EX, '..', '..', 'skill', 'scripts', 'check-design.sh');
+  const r = spawnSync('bash', [script, EX], { encoding: 'utf8' });
+  assert.equal(r.status, 0, `check-design.sh reported errors on the example:\n${r.stdout}`);
 });

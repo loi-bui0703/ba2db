@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS "order" (
     CONSTRAINT ck_order_total_nonneg CHECK (total_amount >= 0)
 );
 
-COMMENT ON COLUMN "order".total_amount     IS 'Maintained by trg_order_line_total (BR-005, D-01)';
+COMMENT ON COLUMN "order".total_amount     IS 'Maintained by trg_order_line_total (BR-005, DN-01)';
 COMMENT ON COLUMN "order".delivery_address IS 'Snapshot at order time (AT-022). See Q-01';
 
 CREATE TABLE IF NOT EXISTS order_line (
@@ -127,7 +127,7 @@ CREATE TRIGGER order_status_transition
     BEFORE UPDATE OF status ON "order"
     FOR EACH ROW EXECUTE FUNCTION trg_order_status_transition();
 
--- BR-005 / D-01: keep order.total_amount in step with its lines.
+-- BR-005 / DN-01: keep order.total_amount in step with its lines.
 CREATE OR REPLACE FUNCTION trg_order_line_total() RETURNS trigger AS $$
 DECLARE target_order bigint;
 BEGIN

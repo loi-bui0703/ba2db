@@ -37,8 +37,10 @@ Kind: `master` · `transaction` · `line` · `associative` · `reference` · `hi
 
 ### Denormalizations
 
+ID dùng `DN-*` (`D-*` thuộc quyết định mô hình Stage 2 — không dùng lại).
+
 ```
-D-01
+DN-01
 What:
 Why (VP-*):
 Sync mechanism:
@@ -52,10 +54,25 @@ Risk accepted:
 
 ## 6. Business rules mapping
 
-| BR-* | Enforced by | Where |
-|---|---|---|
-| BR-001 | CHECK `ck_order_total_nonneg` | DB |
-| BR-007 | application logic | service layer — **không ép được ở DB** |
+Cột `Where` ở stage này là **dự kiến** (`DB (planned)`), chưa phải sự thật: chỉ
+Stage 4 chạy DDL thật mới biết database có ép được hay không. Stage 4 có nghĩa
+vụ quay lại sửa cột này — xem `Verified by` và §8.
+
+| BR-* | Enforced by | Where | Verified by Stage 4 |
+|---|---|---|---|
+| BR-001 | CHECK `ck_order_total_nonneg` | DB (planned) | ☐ |
+| BR-007 | application logic | app — **không ép được ở DB** | n/a |
+
+**Rules không ép được ở tầng database (tổng hợp):** `BR-xxx`, … → phải xuất hiện
+đầy đủ trong `05-app-enforced-rules.md` ở Stage 5.
+
+## 8. Amendments from later stages · Sửa từ stage sau
+
+Stage 4/5 chứng minh một khẳng định ở trên là sai thì **sửa tại chỗ** và ghi một
+dòng ở đây. Để trống nếu chưa có.
+
+| Ngày | Mục bị sửa | Khẳng định cũ | Sự thật đã kiểm chứng | Nguồn |
+|---|---|---|---|---|
 
 ## 7. Patterns applied
 

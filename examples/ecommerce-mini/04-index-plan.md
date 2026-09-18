@@ -23,7 +23,7 @@ FROM   app."order"
 WHERE  status = 'paid' AND created_at >= $1 AND created_at < $2
 GROUP  BY 1 ORDER BY 1;
 -- Expected path: index scan on ix_order_paid_created_at.
--- total_amount is read straight from the row (D-01), so no join to order_line.
+-- total_amount is read straight from the row (DN-01), so no join to order_line.
 ```
 
 That second sentence is the whole reason `order.total_amount` is stored. Without

@@ -37,7 +37,7 @@ Risk: none; refreshing it would be the bug
 ```
 
 ```
-D-01 — performance denormalization
+DN-01 — performance denormalization
 What: order.total_amount duplicates SUM(order_line.quantity * unit_price)
 Why:  VP-010 daily revenue report over ~12.8M orders; §3.6 also requires the
       total to be visible immediately while lines are being added

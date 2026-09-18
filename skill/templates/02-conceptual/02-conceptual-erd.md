@@ -34,11 +34,26 @@ Kind: `independent` · `weak` · `associative` · `reference/enum`
 |---|---|---|---|---|---|---|---|
 | R-01 | a customer places 0..n orders | một khách hàng đặt 0..n đơn | 1:N | order→customer bắt buộc | no | no | RL-001 |
 
+## 4b. Cross-cutting principle · Nguyên tắc xuyên suốt
+
+Hệ thống này thực chất phải **chứng minh** điều gì?
+
+**Nguyên tắc (một câu):** `<...>`
+
+| Áp dụng ở đâu | Entity / quan hệ | Hệ quả thiết kế |
+|---|---|---|
+
+Nếu không tìm ra nguyên tắc nào, ghi rõ *"đã tìm, không có nguyên tắc lặp lại"* —
+đừng bỏ trống.
+
 ## 5. Design decisions · Quyết định
 
 | # | Decision | Alternatives considered | Rationale |
 |---|---|---|---|
 | D-01 | Gộp `contact_info` vào `customer` | bảng riêng | không tồn tại độc lập, 1:1 bắt buộc |
+
+> `D-*` là namespace của **quyết định mô hình ở stage này**. Denormalization ở
+> Stage 3 dùng `DN-*` — không dùng lại `D-*`.
 
 ## 6. Out of scope · Ứng viên bị loại
 

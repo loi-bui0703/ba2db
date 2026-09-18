@@ -30,7 +30,7 @@ Or, without copying anything, add to your project's `CLAUDE.md`:
 ```markdown
 ## Database design
 When designing a database from BA documents, read `path/to/ba2db/skill/SKILL.md`
-and follow its six-stage workflow. Load only the current stage's SKILL.md.
+and follow its seven-stage workflow. Load only the current stage's SKILL.md.
 ```
 
 ## Notes

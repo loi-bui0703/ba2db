@@ -20,7 +20,7 @@ skill:
 ```
 When the user asks to design a database, extract data requirements from
 business/BA documents, build an ERD, normalize a schema, or generate DDL:
-read `<skill-path>/SKILL.md` first and follow its six-stage workflow.
+read `<skill-path>/SKILL.md` first and follow its seven-stage workflow.
 
 Rules that matter:
 - Do not jump straight to DDL. Each stage produces its own artifact.

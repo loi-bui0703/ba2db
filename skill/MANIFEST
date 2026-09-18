@@ -1,0 +1,41 @@
+# Files this skill needs to be complete.
+# Single source of truth: read by scripts/check-structure.sh and by `ba2db doctor`.
+# Lines starting with # and blank lines are ignored. Paths are relative to skill/.
+MANIFEST
+SKILL.md
+agents/README.md
+skills/00-intake/SKILL.md
+skills/01-requirements-extraction/SKILL.md
+skills/01b-dbms-selection/SKILL.md
+skills/02-conceptual-model/SKILL.md
+skills/03-logical-design/SKILL.md
+skills/04-physical-design/SKILL.md
+skills/05-review-handoff/SKILL.md
+references/extraction-checklist.md
+references/naming-conventions.md
+references/normalization.md
+references/modeling-patterns.md
+references/anti-patterns.md
+references/indexing-and-performance.md
+references/dbms-notes.md
+references/dbms-selection.md
+references/storage-topology.md
+references/review-checklist.md
+templates/01-requirements/00-intake-report.md
+templates/01-requirements/01-data-requirements.md
+templates/01-requirements/01-glossary.md
+templates/01b-dbms/01b-dbms-decision.md
+templates/02-conceptual/02-conceptual-erd.md
+templates/03-logical/03-logical-schema.md
+templates/03-logical/03-data-dictionary.md
+templates/04-physical/04-schema.sql
+templates/04-physical/04-index-plan.md
+templates/04-physical/04-migration-notes.md
+templates/05-review/05-review-report.md
+templates/05-review/05-traceability-matrix.md
+templates/05-review/05-app-enforced-rules.md
+templates/05-review/05-assertions.sql
+scripts/init-workspace.sh
+scripts/check-structure.sh
+scripts/check-design.sh
+scripts/validate-ddl.sh

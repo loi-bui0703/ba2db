@@ -214,31 +214,15 @@ function cmdList() {
 
 function cmdDoctor() {
   console.log(`${C.b('ba2db doctor')} ${C.dim(`v${VERSION}`)}\n`);
-  const required = [
-    'SKILL.md',
-    'skills/00-intake/SKILL.md',
-    'skills/01-requirements-extraction/SKILL.md',
-    'skills/02-conceptual-model/SKILL.md',
-    'skills/03-logical-design/SKILL.md',
-    'skills/04-physical-design/SKILL.md',
-    'skills/05-review-handoff/SKILL.md',
-    'references/extraction-checklist.md',
-    'references/naming-conventions.md',
-    'references/normalization.md',
-    'references/modeling-patterns.md',
-    'references/anti-patterns.md',
-    'references/indexing-and-performance.md',
-    'references/dbms-notes.md',
-    'references/review-checklist.md',
-    'templates/01-requirements/01-data-requirements.md',
-    'templates/02-conceptual/02-conceptual-erd.md',
-    'templates/03-logical/03-logical-schema.md',
-    'templates/03-logical/03-data-dictionary.md',
-    'templates/04-physical/04-schema.sql',
-    'templates/05-review/05-review-report.md',
-    'templates/05-review/05-traceability-matrix.md',
-    'scripts/init-workspace.sh',
-  ];
+  // Single source of truth, shared with scripts/check-structure.sh — the two
+  // must never disagree about what "complete" means.
+  const manifestPath = join(SKILL_SRC, 'MANIFEST');
+  const required = existsSync(manifestPath)
+    ? readFileSync(manifestPath, 'utf8')
+        .split('\n')
+        .map((l) => l.replace(/#.*$/, '').trim())
+        .filter(Boolean)
+    : [];
 
   let failed = 0;
   const check = (label, ok, detail = '') => {
@@ -248,6 +232,7 @@ function cmdDoctor() {
 
   console.log(C.b('Package'));
   check('skill/ directory present', existsSync(SKILL_SRC), SKILL_SRC);
+  check('MANIFEST present', required.length > 0, required.length ? '' : manifestPath);
   const missing = required.filter((f) => !existsSync(join(SKILL_SRC, f)));
   check(`${required.length} skill files intact`, missing.length === 0, missing.length ? `missing: ${missing[0]}${missing.length > 1 ? ` (+${missing.length - 1})` : ''}` : '');
 
@@ -279,7 +264,8 @@ async function cmdInit(slug, flags) {
   }
   const { spawnSync } = await import('node:child_process');
   const script = join(SKILL_SRC, 'scripts', 'init-workspace.sh');
-  const res = spawnSync('bash', [script, slug, flags.dbms || 'postgresql-16'], { stdio: 'inherit' });
+  // No default engine: Stage 1B picks one from the requirements and writes an ADR.
+  const res = spawnSync('bash', [script, slug, flags.dbms || 'undecided'], { stdio: 'inherit' });
   if (res.status !== 0) process.exitCode = res.status ?? 1;
 }
 

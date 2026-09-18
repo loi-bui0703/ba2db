@@ -2,7 +2,7 @@
 name: db-design-03-logical-design
 description: Stage 3 — normalize the conceptual model into a logical schema: tables, keys, data types, constraints, and a full data dictionary.
 stage: 3
-inputs: 02-conceptual-erd.md, 01-data-requirements.md
+inputs: 02-conceptual-erd.md, 01-data-requirements.md, 01b-dbms-decision.md
 outputs: 03-logical-schema.md, 03-data-dictionary.md
 ---
 
@@ -37,6 +37,10 @@ DBMS, nhưng đã đủ chặt để sinh DDL.
 Chỉ denormalize khi có `VP-*` (yêu cầu hiệu năng) chứng minh, và khi đó phải
 ghi: dữ liệu nào bị nhân bản, cơ chế nào giữ đồng bộ, rủi ro gì.
 
+**ID của denormalization là `DN-*`, không phải `D-*`.** `D-*` đã là namespace
+quyết định mô hình của Stage 2; dùng lại nó làm mọi tham chiếu chéo — kể cả
+comment trong DDL ở Stage 4 — trở nên nhập nhằng.
+
 ## Bước 4 — Kiểu dữ liệu & ràng buộc
 
 Theo `references/naming-conventions.md`:
@@ -47,8 +51,20 @@ Theo `references/naming-conventions.md`:
 - `NOT NULL` là mặc định; cho phép NULL phải có lý do nghiệp vụ.
 - Mọi `BR-*` phải thành: `CHECK`, `UNIQUE`, FK, trigger, hoặc — nếu không thể
   ép ở tầng DB — ghi rõ "enforced in application" trong data dictionary.
+- **Khẳng định "ép được ở DB" ở stage này là *dự kiến*, không phải sự thật.**
+  Ghi `DB (planned)` và để trống cột `Verified by Stage 4`. Chỉ Stage 4 chạy DDL
+  thật mới biết engine có ép được hay không — và nó có nghĩa vụ quay lại sửa.
+  Ba loại rule hay bị khai sai ở đây: ràng buộc liên dòng (tổng, đếm), "phải có
+  ít nhất một dòng con loại X", và **duy nhất toàn cục trên bảng sẽ partition**.
 - Cột audit chuẩn: `created_at`, `created_by`, `updated_at`, `updated_by`
   (+ `deleted_at` nếu dùng soft delete — xem `references/modeling-patterns.md`).
+- **Vòng đời không được mã hoá hai lần mà không có ràng buộc.** Nếu một bảng có
+  cột trạng thái **và** một dãy timestamp nullable theo từng mốc (`sent_at`,
+  `approved_at`, `closed_at`…), thì hai cách biểu diễn đó phải bị buộc khớp
+  nhau bằng `CHECK`: trạng thái đã đạt mốc ⇒ timestamp tương ứng `NOT NULL`
+  (và ngược lại nếu nghiệp vụ đòi). Không có ràng buộc này thì
+  `status='DELIVERED'` với `sent_at IS NULL` là một dòng hợp lệ — và mọi job
+  hay báo cáo đọc timestamp đó đều sai một cách âm thầm.
 
 ## Bước 5 — Data dictionary
 
@@ -60,9 +76,18 @@ Mỗi cột một dòng: bảng, cột, kiểu, null?, default, ràng buộc, m�
 Đối chiếu `references/anti-patterns.md`. Với mỗi truy vấn/báo cáo trong `VP-*`,
 thử "đi bộ" qua schema: có join được không, có cần bảng nào chưa có không.
 
+Thêm hai lượt quét ngắn:
+
+- **Vòng đời hai lần**: bảng nào có cột trạng thái + ≥2 timestamp theo mốc mà
+  chưa có `CHECK` buộc chúng khớp nhau?
+- **Hàng đợi**: nếu `01b-dbms-decision.md` §5 chốt là queue-in-database, bảng
+  hàng đợi đã có cơ chế nhận việc (claim) chưa — `FOR UPDATE SKIP LOCKED` hay
+  cột lease? Xem `references/storage-topology.md §1`.
+
 ## Artifact & Gate
 
 `03-logical-schema.md` ← `templates/03-logical/03-logical-schema.md`;
 `03-data-dictionary.md` ← `templates/03-logical/03-data-dictionary.md`.
-Báo cáo: số bảng, các quyết định chuẩn hóa/denormalize, rule nào không ép được
-ở tầng DB. Cập nhật `STATE.md`, sang Stage 4.
+Báo cáo: số bảng, các quyết định chuẩn hóa/denormalize (`DN-*`), rule nào không
+ép được ở tầng DB, và những `BR-*` đang ghi `DB (planned)` mà Stage 4 phải kiểm
+chứng. Cập nhật `STATE.md`, sang Stage 4.

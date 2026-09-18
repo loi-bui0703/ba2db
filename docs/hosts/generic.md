@@ -13,11 +13,11 @@ npx ba2db prompt          # prints the prompt below with paths filled in
 Then paste:
 
 ```
-You are a Data Architect. Read .ba2db/SKILL.md and follow its six-stage
+You are a Data Architect. Read .ba2db/SKILL.md and follow its seven-stage
 workflow to design a database from my BA documents.
 
 - BA documents: <path>
-- Target DBMS: PostgreSQL 16
+- Target DBMS: <leave blank — Stage 1B decides it and writes an ADR>
 - Project slug: <slug>
 
 Start at Stage 0. Stop at the end of each stage, summarise, and ask me before

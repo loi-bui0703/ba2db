@@ -21,10 +21,14 @@
 
 ## Khi nào được denormalize
 
-Chỉ khi có **bằng chứng** từ `VP-*`, và phải ghi đủ 4 mục:
+Chỉ khi có **bằng chứng** từ `VP-*`, và phải ghi đủ 4 mục.
+
+> **ID dùng `DN-*`, không dùng `D-*`.** `D-*` đã là namespace của quyết định mô
+> hình ở Stage 2. Một `D-01` mang hai nghĩa khác nhau trong cùng một bộ artifact
+> làm mọi tham chiếu chéo — kể cả comment trong DDL — trở nên nhập nhằng.
 
 ```
-Denormalization D-01
+DN-01
 What: order.customer_name nhân bản từ customer.name
 Why: báo cáo đơn hàng 50k dòng/ngày, join customer làm chậm p95 (VP-004)
 Sync: cập nhật qua trigger khi customer.name đổi  |  hoặc: snapshot cố ý, không đồng bộ

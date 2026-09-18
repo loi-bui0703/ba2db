@@ -93,7 +93,8 @@ rule_body() {
   cat <<RULE
 When the user asks to design a database, extract data requirements from
 business/BA documents, build an ERD, normalize a schema, or generate DDL:
-read \`$path/SKILL.md\` first and follow its six-stage workflow.
+read \`$path/SKILL.md\` first and follow its seven-stage workflow
+(0 intake, 1 requirements, 1B DBMS decision, 2 conceptual, 3 logical, 4 physical, 5 review).
 
 Rules that matter:
 - Do not jump straight to DDL. Each stage produces its own artifact.
@@ -152,7 +153,7 @@ $(rule_body ".$SKILL_NAME")"
     echo ""
     echo "Manual mode. Paste this into your agent:"
     echo "---"
-    echo "Read .$SKILL_NAME/SKILL.md and follow its six-stage workflow to design a"
+    echo "Read .$SKILL_NAME/SKILL.md and follow its seven-stage workflow to design a"
     echo "database from my BA documents in <path>. Start at Stage 0."
     echo "---"
     ;;

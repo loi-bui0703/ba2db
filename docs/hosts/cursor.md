@@ -26,7 +26,7 @@ alwaysApply: false
 
 When the user asks to design a database, extract data requirements from
 business/BA documents, build an ERD, normalize a schema, or generate DDL:
-read `.ba2db/SKILL.md` first and follow its six-stage workflow.
+read `.ba2db/SKILL.md` first and follow its seven-stage workflow.
 ...
 ```
 

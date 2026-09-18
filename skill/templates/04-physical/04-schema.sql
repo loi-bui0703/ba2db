@@ -1,8 +1,9 @@
 -- =============================================================================
 -- <PROJECT NAME> — Physical schema
--- DBMS      : PostgreSQL 16
+-- DBMS      : <engine + version>   (chosen at stage 1B — 01b-dbms-decision.md)
+-- Status    : <decided | PROVISIONAL, owner: ...>
 -- Generated : <YYYY-MM-DD>  (stage 4, db-design-from-ba)
--- Source    : 03-logical-schema.md, 03-data-dictionary.md
+-- Source    : 03-logical-schema.md, 03-data-dictionary.md, 01b-dbms-decision.md
 -- NOTE      : identifiers are English snake_case; comments may be EN/VI.
 -- =============================================================================
 

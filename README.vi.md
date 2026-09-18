@@ -31,7 +31,7 @@ nhận những gì tài liệu chưa bao giờ nói**.
 
 ## ba2db làm gì
 
-Thay một cú nhảy lớn bằng sáu giai đoạn có cổng chặn, mỗi giai đoạn sinh ra
+Thay một cú nhảy lớn bằng bảy giai đoạn có cổng chặn, mỗi giai đoạn sinh ra
 artifact mà giai đoạn sau dùng làm đầu vào:
 
 ```
@@ -39,6 +39,7 @@ Tài liệu BA
     │
     ├─ 0  Tiếp nhận & chốt phạm vi   → có gì trong tay, thiết kế cho cái gì
     ├─ 1  Trích xuất yêu cầu          → 9 section, ID đánh số, mục nào cũng có nguồn
+    ├─ 1B Quyết định hệ quản trị      → chọn engine nào, vì sao, và mất gì khi chọn
     ├─ 2  Mô hình khái niệm           → ERD mà người làm nghiệp vụ đọc và duyệt được
     ├─ 3  Thiết kế logic              → bảng, khóa, kiểu dữ liệu, data dictionary
     ├─ 4  Thiết kế vật lý             → DDL chạy được, kế hoạch index, ghi chú migration
@@ -48,13 +49,15 @@ Tài liệu BA
                         Bản thiết kế bạn bảo vệ được từng dòng
 ```
 
-Ba nguyên tắc làm nên độ tin cậy:
+Năm nguyên tắc làm nên độ tin cậy:
 
 | Nguyên tắc | Tác dụng |
 |---|---|
 | **Không bịa nghiệp vụ** | Mọi entity/attribute/rule ghi nguồn `BA-xx §mục`. Thiếu thì vào `OPEN QUESTIONS`, không đoán bừa. |
 | **Truy vết hai chiều** | Requirement không có bảng = *thiếu việc*. Bảng không có requirement = *bịa ra*. Cả hai đều bị báo là lỗi. |
 | **Cổng chặn mỗi giai đoạn** | Agent dừng lại, tóm tắt, chờ bạn. Sai sót bị bắt ở ERD, không phải ở DDL. |
+| **Không có DBMS mặc định** | Stage 1B chọn engine từ chính requirement, nói rõ ứng viên nào bị loại, và đếm số rule mỗi ứng viên **không ép được**. Mặc định là một kết luận không có tiền đề. |
+| **Stage sau sửa được stage trước** | Khi chạy DDL chứng minh một khẳng định của Stage 3 là sai, artifact Stage 3 **được sửa** và việc sửa được ghi lại. Để hai artifact nói khác nhau là bàn giao một khẳng định sai. |
 
 ## Cài đặt
 
@@ -135,10 +138,11 @@ Rồi nói với agent:
 
 ```
 Thiết kế database từ tài liệu BA trong workspace/my-project/ba-docs/.
-DBMS đích: PostgreSQL 16.
+Đừng mặc định DBMS — chọn ở Stage 1B và cho tôi xem bảng so sánh.
+Ràng buộc nền tảng: <đội vận hành đang chạy gì, cloud, giấy phép, ORM>.
 ```
 
-Agent nạp skill, chạy Stage 0, rồi dừng chờ bạn xác nhận. Kết quả là mười một
+Agent nạp skill, chạy Stage 0, rồi dừng chờ bạn xác nhận. Kết quả là mười bốn
 artifact:
 
 ```
@@ -146,14 +150,26 @@ workspace/my-project/
 ├── 00-intake-report.md              phạm vi, giả định, câu hỏi mở
 ├── 01-data-requirements.md          9 section, mục nào cũng có nguồn
 ├── 01-glossary.md                   thuật ngữ, từ đồng nghĩa, chỗ nhập nhằng
+├── 01b-dbms-decision.md             ADR chọn engine: driver, ứng viên bị loại, cái giá
 ├── 02-conceptual-erd.md             ERD Mermaid + danh mục entity
 ├── 03-logical-schema.md             bảng, khóa, quyết định chuẩn hóa
 ├── 03-data-dictionary.md            mọi cột, có kiểu và có nguồn
 ├── 04-schema.sql                    DDL chạy được
 ├── 04-index-plan.md                 mỗi index có một truy vấn thật biện minh
-├── 04-migration-notes.md            triển khai, phân quyền, backup, PII
+├── 04-migration-notes.md            triển khai, phân quyền, backup, PII, job vận hành
 ├── 05-review-report.md              findings theo mức độ, câu hỏi còn mở
-└── 05-traceability-matrix.md        requirement ⇄ schema, cả hai chiều
+├── 05-traceability-matrix.md        requirement ⇄ schema, cả hai chiều
+├── 05-app-enforced-rules.md         mọi rule mà database KHÔNG chặn
+└── 05-assertions.sql                bằng chứng ràng buộc ép đúng cái nó khai
+```
+
+Hai trong số đó kiểm tra được bằng máy, và Stage 5 chạy chúng **trước khi** tự
+đánh giá:
+
+```bash
+bash scripts/check-design.sh workspace/my-project
+bash scripts/validate-ddl.sh workspace/my-project/04-schema.sql postgres \
+  --assert workspace/my-project/05-assertions.sql --report
 ```
 
 Xem [`examples/ecommerce-mini/`](./examples/ecommerce-mini/) để biết một lần
@@ -161,7 +177,7 @@ chạy hoàn chỉnh trông như thế nào.
 
 ## Skill này biết những gì
 
-Tám tài liệu tra cứu, **chỉ nạp khi cần** — nên mỗi giai đoạn chỉ tốn context
+Mười tài liệu tra cứu, **chỉ nạp khi cần** — nên mỗi giai đoạn chỉ tốn context
 cho đúng phần nó dùng:
 
 | Tài liệu | Nội dung |
@@ -171,9 +187,11 @@ cho đúng phần nó dùng:
 | `normalization.md` | 1NF→BCNF, và bốn thứ phải ghi ra trước khi denormalize |
 | `modeling-patterns.md` | SCD/versioning, multi-tenant, party model, cây phân cấp, i18n, state machine |
 | `anti-patterns.md` | EAV, polymorphic FK, god table, float cho tiền… tổng 16 mục |
-| `indexing-and-performance.md` | Chọn index, thứ tự cột composite, partition, ước lượng dung lượng |
-| `dbms-notes.md` | Khác biệt PostgreSQL · MySQL 8 · SQL Server · Oracle |
-| `review-checklist.md` | 8 nhóm kiểm tra nghiệm thu cuối |
+| `indexing-and-performance.md` | Chọn index, thứ tự cột composite, partition, dung lượng, chi phí đường ghi, cơ chế nhận việc, khoá hàng nóng |
+| `dbms-selection.md` | Chọn engine: driver lấy từ requirement, bảng năng lực 4 engine, bốn cách chọn sai kinh điển |
+| `dbms-notes.md` | Khác biệt PostgreSQL · MySQL 8 · SQL Server · Oracle, và ngân sách khả chuyển |
+| `storage-topology.md` | Hàng đợi trong DB hay broker, view/MV/bảng thật, enum hay bảng danh mục, lưu trữ lạnh |
+| `review-checklist.md` | 9 nhóm kiểm tra nghiệm thu — nhóm thứ 9 là lượt đọc đối kháng, đi tìm lỗi mới |
 
 ## CLI
 

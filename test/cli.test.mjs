@@ -138,3 +138,59 @@ test('prompt output is self-contained and mentions the gate rule', () => {
   assert.match(r.stdout, /SKILL\.md/);
   assert.match(r.stdout, /Stage 0/);
 });
+
+test('init writes the workspace into the CWD, never into the package', () => {
+  const dir = tmp();
+  try {
+    const r = cli(['init', 'my-project'], dir);
+    assert.equal(r.status, 0, r.stderr);
+
+    // The workspace belongs to the user's project...
+    assert.ok(existsSync(join(dir, 'workspace', 'my-project', 'STATE.md')));
+    assert.ok(existsSync(join(dir, 'workspace', 'my-project', 'ba-docs')));
+    assert.ok(existsSync(join(dir, 'workspace', 'my-project', '04-schema.sql')));
+
+    // ...and must never be written next to the templates it was copied from.
+    assert.equal(existsSync(join(SKILL_SRC, 'workspace')), false,
+      'init wrote into the installed skill directory instead of the project');
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('init refuses to clobber an existing workspace', () => {
+  const dir = tmp();
+  try {
+    assert.equal(cli(['init', 'twice'], dir).status, 0);
+    const second = cli(['init', 'twice'], dir);
+    assert.notEqual(second.status, 0, 'a second init must not silently overwrite artifacts');
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('init scaffolds all fourteen artifacts', () => {
+  const dir = tmp();
+  try {
+    cli(['init', 'complete'], dir);
+    const w = join(dir, 'workspace', 'complete');
+    for (const f of [
+      '00-intake-report.md', '01-data-requirements.md', '01-glossary.md',
+      '01b-dbms-decision.md',
+      '02-conceptual-erd.md', '03-logical-schema.md', '03-data-dictionary.md',
+      '04-schema.sql', '04-index-plan.md', '04-migration-notes.md',
+      '05-review-report.md', '05-traceability-matrix.md',
+      '05-app-enforced-rules.md', '05-assertions.sql',
+    ]) {
+      assert.ok(existsSync(join(w, f)), `init did not scaffold ${f}`);
+    }
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('a fresh workspace starts with no DBMS chosen', () => {
+  // Stage 1B decides it. A scaffolded default would be a decision nobody made.
+  const dir = tmp();
+  try {
+    cli(['init', 'nodefault'], dir);
+    const state = readFileSync(join(dir, 'workspace', 'nodefault', 'STATE.md'), 'utf8');
+    assert.match(state, /dbms:\s*undecided/, 'STATE.md must not pre-pick an engine');
+    assert.match(state, /dbms_status:\s*undecided/);
+    assert.match(state, /## Amendments/, 'the cross-stage correction log must exist from the start');
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});

@@ -2,7 +2,7 @@
 name: db-design-02-conceptual-model
 description: Stage 2 — turn extracted requirements into a conceptual ER model (entities, relationships, cardinality) that a business reader can validate.
 stage: 2
-inputs: 01-data-requirements.md, 01-glossary.md
+inputs: 01-data-requirements.md, 01-glossary.md, 01b-dbms-decision.md
 outputs: 02-conceptual-erd.md (Mermaid ERD + entity catalog)
 ---
 
@@ -53,7 +53,34 @@ erDiagram
 Nếu >25 entity, tách thành nhiều sơ đồ theo phân hệ (subject area) + một sơ đồ
 tổng quan chỉ có entity trung tâm.
 
-## Bước 4 — Đối chiếu ngược
+## Bước 4 — Nguyên tắc xuyên suốt (cross-cutting principle)
+
+Trước khi sang Stage 3, hỏi một câu duy nhất:
+
+> **Hệ thống này thực chất phải *chứng minh* điều gì?**
+
+Rất nhiều quyết định trông rời rạc thực ra là **cùng một nước đi** lặp lại: sao
+lại đơn giá *tại thời điểm giao dịch*, ghi URL *đã thực sự gọi*, ghim *đúng phiên
+bản nội dung đã dùng*. Cả ba trả lời *"điều gì là đúng lúc việc này xảy ra?"*
+chứ không phải *"điều gì đang đúng lúc này?"* — và khi nhận ra, nghiệp vụ không
+còn là "lưu dữ liệu" mà là **"chứng minh một trạng thái trong quá khứ"**.
+
+Cách làm, ba dòng vào artifact:
+
+1. Quét `BR-*` và `NF-*` tìm những mục **lặp lại cùng một hình dạng** (lịch sử,
+   bằng chứng, bất biến, hiệu lực theo thời gian, đối soát, kiểm toán).
+2. Viết nguyên tắc đó ra thành **một câu**.
+3. Ghi nó **dùng ở đâu** — danh sách entity/quan hệ chịu ảnh hưởng.
+
+> Nhận ra nguyên tắc này ở Stage 2 đáng giá hơn việc phát hiện lại nó ba lần rời
+> rạc ở Stage 3: nó biến mười quyết định nhỏ thành một quyết định có tên, và làm
+> cho việc **bỏ sót lần thứ tư** trở nên nhìn thấy được.
+>
+> Nguyên tắc thường gặp: *chứng minh trạng thái quá khứ* · *nhận mọi bằng chứng,
+> kể cả bằng chứng xấu* · *không xoá, chỉ chuyển trạng thái* · *tách cái đã xảy
+> ra khỏi cái đang được cấu hình*.
+
+## Bước 5 — Đối chiếu ngược
 
 Đi lại toàn bộ `PR-*` (use case): mỗi use case phải thực hiện được bằng các
 entity/quan hệ hiện có. Use case nào không đi trọn được → thiếu entity hoặc

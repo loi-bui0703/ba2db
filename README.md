@@ -4,8 +4,6 @@
 
 **Turn Business Analysis documents into a complete, traceable database design.**
 
-[![CI](https://github.com/loi-bui0703/ba2db/actions/workflows/ci.yml/badge.svg)](https://github.com/loi-bui0703/ba2db/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/ba2db?color=blue)](https://www.npmjs.com/package/ba2db)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 [![Zero dependencies](https://img.shields.io/badge/dependencies-0-success)](./package.json)
@@ -32,7 +30,7 @@ what the documents never specified**.
 
 ## What ba2db does
 
-It replaces one big leap with six gated stages, each producing an artifact that
+It replaces one big leap with seven gated stages, each producing an artifact that
 the next stage consumes:
 
 ```
@@ -40,6 +38,7 @@ BA documents
     │
     ├─ 0  Intake & scoping          → what we have, what we are designing for
     ├─ 1  Requirements extraction   → 9 sections, numbered IDs, every one cited
+    ├─ 1B DBMS decision             → which engine, why, and what it costs us
     ├─ 2  Conceptual model          → ERD a business reader can validate
     ├─ 3  Logical design            → tables, keys, types, data dictionary
     ├─ 4  Physical design           → runnable DDL, index plan, migration notes
@@ -49,13 +48,15 @@ BA documents
                           A design you can defend line by line
 ```
 
-Three rules make the output trustworthy:
+Five rules make the output trustworthy:
 
 | Rule | Effect |
 |---|---|
 | **Never invent business facts** | Every entity, attribute and rule cites `BA-xx §section`. Gaps become `OPEN QUESTIONS`, not guesses. |
 | **Two-way traceability** | A requirement with no table is *missing work*. A table with no requirement is *invented*. Both are reported as defects. |
 | **A gate at every stage** | The agent stops, summarises, and waits. Mistakes get caught at the ERD, not in the DDL. |
+| **No default DBMS** | Stage 1B picks the engine from the requirements, names the candidates it rejected, and counts the rules each one could not enforce. A default is a conclusion without premises. |
+| **A later stage may overrule an earlier one** | When running the DDL disproves a Stage 3 claim, the Stage 3 artifact gets fixed and the correction is logged. Two artifacts saying different things is a false claim handed to whoever reads next. |
 
 ## Install
 
@@ -140,32 +141,44 @@ Then, in your agent:
 
 ```
 Design a database from the BA documents in workspace/my-project/ba-docs/.
-Target: PostgreSQL 16.
+Don't assume a DBMS — choose one at Stage 1B and show me the comparison.
+Platform constraints: <what ops already runs, cloud, licence, ORM>.
 ```
 
 The agent loads the skill, runs Stage 0, and stops for your confirmation.
-You get eleven artifacts:
+You get fourteen artifacts:
 
 ```
 workspace/my-project/
 ├── 00-intake-report.md              scope, assumptions, open questions
 ├── 01-data-requirements.md          9 sections, every item cited
 ├── 01-glossary.md                   terms, synonyms, ambiguities
+├── 01b-dbms-decision.md             engine ADR: drivers, rejected candidates, cost
 ├── 02-conceptual-erd.md             Mermaid ERD + entity catalog
 ├── 03-logical-schema.md             tables, keys, normalization decisions
 ├── 03-data-dictionary.md            every column, typed and sourced
 ├── 04-schema.sql                    runnable DDL
 ├── 04-index-plan.md                 each index justified by a real query
-├── 04-migration-notes.md            deployment, roles, backup, PII
+├── 04-migration-notes.md            deployment, roles, backup, PII, ops jobs
 ├── 05-review-report.md              findings by severity, open questions
-└── 05-traceability-matrix.md        requirements ⇄ schema, both directions
+├── 05-traceability-matrix.md        requirements ⇄ schema, both directions
+├── 05-app-enforced-rules.md         every rule the database does NOT stop
+└── 05-assertions.sql                proof the constraints enforce what they claim
+```
+
+Two of them are machine-checkable, and Stage 5 runs them before grading itself:
+
+```bash
+bash scripts/check-design.sh workspace/my-project
+bash scripts/validate-ddl.sh workspace/my-project/04-schema.sql postgres \
+  --assert workspace/my-project/05-assertions.sql --report
 ```
 
 See [`examples/ecommerce-mini/`](./examples/ecommerce-mini/) for a filled-in run.
 
 ## What it knows
 
-The skill carries eight reference documents it loads only when relevant —
+The skill carries ten reference documents it loads only when relevant —
 so a stage costs context only for what it actually needs:
 
 | Reference | Covers |
@@ -175,9 +188,11 @@ so a stage costs context only for what it actually needs:
 | `normalization.md` | 1NF→BCNF, and the four things you must write down before denormalizing |
 | `modeling-patterns.md` | SCD/versioning, multi-tenancy, party model, hierarchies, i18n, state machines |
 | `anti-patterns.md` | EAV, polymorphic FK, god tables, float money, comma-separated values, 16 total |
-| `indexing-and-performance.md` | Index selection, composite column order, partitioning, sizing |
-| `dbms-notes.md` | PostgreSQL · MySQL 8 · SQL Server · Oracle dialect differences |
-| `review-checklist.md` | 8 groups of acceptance checks for the final review |
+| `indexing-and-performance.md` | Index selection, composite column order, partitioning, sizing, write-path cost, queue claim, hot rows |
+| `dbms-selection.md` | Choosing an engine: drivers from requirements, capability matrix for 4 engines, how selection goes wrong |
+| `dbms-notes.md` | PostgreSQL · MySQL 8 · SQL Server · Oracle dialect differences, and the portability budget |
+| `storage-topology.md` | Queue in the database or a broker, view/MV/real table, enum type or lookup table, archive tiers |
+| `review-checklist.md` | 9 groups of acceptance checks — the ninth is the adversarial pass that finds new defects |
 
 ## CLI
 

@@ -20,12 +20,25 @@ Project: `<project-slug>` · Date: `<YYYY-MM-DD>` · Author: `<agent/人>`
 
 | Item | Value |
 |---|---|
-| DBMS + version | PostgreSQL 16 *(default)* |
+| DBMS + version | **`undecided` — quyết định ở Stage 1B** (`01b-dbms-decision.md`) |
 | Workload | OLTP / OLAP / mixed |
 | Expected users | |
 | Peak volume | |
 | Retention | |
 | Legacy system | none / `<mô tả>` |
+
+> Stage 0 **không chọn** DBMS. Ở đây chỉ ghi lại *ràng buộc nền tảng* để
+> Stage 1B lập luận. Điền một engine vào đây là chọn trước khi có dữ kiện.
+
+### 3.1 Platform constraints · Ràng buộc nền tảng (đầu vào cho Stage 1B)
+
+| Ràng buộc | Giá trị / "chưa biết" |
+|---|---|
+| Engine đội vận hành đang chạy | |
+| Cloud / managed service đã chốt | |
+| Giới hạn giấy phép & chi phí | |
+| Framework, ORM, migration runner | |
+| Ràng buộc tuân thủ & vị trí dữ liệu | |
 
 ## 4. Non-functional flags
 

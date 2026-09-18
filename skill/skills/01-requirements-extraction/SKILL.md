@@ -13,8 +13,6 @@ chất lượng của bước trích xuất này.
 
 ## Cách đọc / How to read
 
-Đọc **hai lượt**:
-
 Đọc **ba lượt**, theo đúng thứ tự này:
 
 - **Lượt 1 — sweep (mở):** đọc toàn bộ tài liệu, đánh dấu mọi danh từ nghiệp vụ,
@@ -89,4 +87,5 @@ Impacts: invoice.status, payment
 Báo cáo: số requirement theo section (kể cả `S9`), danh sách `CONFLICTS`, danh
 sách `OPEN QUESTIONS` xếp theo mức độ ảnh hưởng tới thiết kế, và **những gì
 lượt 3 tìm thêm được so với lượt 2** — nếu lượt 3 không tìm thêm gì, nói rõ. Xin xác nhận, cập nhật
-`STATE.md`, rồi sang Stage 2.
+`STATE.md`, rồi sang **Stage 1B** (`skills/01b-dbms-selection/SKILL.md`) để chọn
+hệ quản trị — `VP-*`, `BR-*` và `NF-*` vừa trích xuất chính là đầu vào của nó.
