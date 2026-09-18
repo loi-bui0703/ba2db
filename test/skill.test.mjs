@@ -273,3 +273,23 @@ test('the assertions template demands both directions', () => {
   assert.match(s, /assert_rejects/, 'the violating case must be rejected');
   assert.match(s, /assert_accepts/, 'the legitimate near-miss must be accepted — this is the half that finds over-broad constraints');
 });
+
+// The doc said ">= 2 timestamps", the script checked ">= 3", so the script
+// silently passed exactly the tables the rule forbids. Pin them to each other:
+// read both numbers, never hardcode a third copy here.
+test('the double-encoded-lifecycle threshold is the same in the skill and the script', () => {
+  const doc = readFileSync(join(SKILL, 'skills/03-logical-design/SKILL.md'), 'utf8');
+  const sh = readFileSync(join(SKILL, 'scripts', 'check-design.sh'), 'utf8');
+
+  const docN = doc.match(/≥\s*(\d+)\s*timestamp/);
+  const shN = sh.match(/nts\s*>=\s*(\d+)/);
+
+  assert.ok(docN, 'Stage 3 must state the threshold as "≥N timestamp"');
+  assert.ok(shN, 'check-design.sh must gate the lifecycle scan on "nts >= N"');
+  assert.equal(
+    shN[1],
+    docN[1],
+    `check-design.sh gates on ${shN[1]} timestamps but Stage 3 documents ${docN[1]} — ` +
+      'a tool that is looser than its own rule fails open',
+  );
+});

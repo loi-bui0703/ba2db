@@ -194,7 +194,11 @@ if filled 04-schema.sql; then
       nts=0; hasstatus=0; ckts=0; delete tsname; next
     }
     inblk && /^[[:space:]]*\)/ {
-      if (hasstatus && nts >= 3 && ckts == 0) print tname "|" nts
+      # Ngưỡng 2 là ngưỡng đã ghi trong skills/03-logical-design/SKILL.md
+      # (Bước 6, "Vòng đời hai lần"). Script từng dùng 3 và im lặng bỏ qua
+      # đúng những bảng mà rule đã cấm — công cụ phải bắt rule đã viết,
+      # không được nới lỏng nó một cách âm thầm.
+      if (hasstatus && nts >= 2 && ckts == 0) print tname "|" nts
       inblk=0; next
     }
     inblk {

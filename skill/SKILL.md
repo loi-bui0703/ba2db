@@ -1,7 +1,7 @@
 ---
 name: db-design-from-ba
 description: Turn a Business Analysis (BA) document set into a complete, optimized database design. Use when the user provides BA/SRS/requirement documents and asks to extract data requirements, choose a DBMS, build an ER model, normalize a schema, or produce DDL. Trigger on "thiết kế database từ tài liệu BA", "design database from requirements", "ERD từ tài liệu", "data model", "schema design", "DDL".
-version: 1.1.0
+version: 1.1.2
 license: MIT
 triggers:
   - thiết kế database

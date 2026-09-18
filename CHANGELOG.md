@@ -14,6 +14,31 @@ Because this package is mostly instructions rather than code, we version it by
   richer but existing artifacts stay valid.
 - **PATCH** — wording, fixes, documentation.
 
+## [1.1.2] — 2026-09-18
+
+### Fixed
+
+- **`check-design.sh` was looser than the rule it enforces.** Stage 3 documents
+  the double-encoded-lifecycle scan as "status column + **≥2** milestone
+  timestamps with no `CHECK` tying them together"
+  (`skills/03-logical-design/SKILL.md`, step 6), but the script gated on
+  `nts >= 3`. A table with exactly two nullable milestone timestamps violated
+  the written rule and still passed the mechanical check — the tool failed open
+  on the defect class it exists to catch. The script now gates on `>= 2`.
+
+### Added
+
+- A regression test that reads the threshold out of **both** the skill and the
+  script and asserts they are equal, rather than hardcoding a third copy of the
+  number. The two can no longer drift apart silently.
+
+## [1.1.1] — 2026-09-18
+
+### Changed
+
+- Packaging metadata only (npm `files`, keywords, repository, trusted
+  publishing). No change to the skill or to generated designs.
+
 ## [1.1.0] — 2026-09-18
 
 Driven by the field trial on a `go-kit`-generated service (`notificationb2b`,
