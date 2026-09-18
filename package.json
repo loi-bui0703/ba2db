@@ -1,20 +1,47 @@
 {
   "name": "ba2db",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "An agent skill that turns Business Analysis documents into a complete, traceable database design — requirements extraction, ERD, logical schema, DDL, and review.",
   "keywords": [
-    "agent-skill", "claude-code", "database-design", "erd", "data-modeling",
-    "business-analysis", "schema", "ddl", "sql", "ai-agent", "cursor", "codex"
+    "agent-skill",
+    "claude-code",
+    "database-design",
+    "erd",
+    "data-modeling",
+    "business-analysis",
+    "schema",
+    "ddl",
+    "sql",
+    "ai-agent",
+    "cursor",
+    "codex"
   ],
   "homepage": "https://github.com/loi-bui0703/ba2db#readme",
-  "bugs": { "url": "https://github.com/loi-bui0703/ba2db/issues" },
-  "repository": { "type": "git", "url": "git+https://github.com/loi-bui0703/ba2db.git" },
+  "bugs": {
+    "url": "https://github.com/loi-bui0703/ba2db/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/loi-bui0703/ba2db.git"
+  },
   "license": "MIT",
   "author": "loi-bui0703",
   "type": "module",
-  "bin": { "ba2db": "bin/ba2db.mjs" },
-  "files": ["bin/", "src/", "skill/", "README.md", "README.vi.md", "LICENSE", "CHANGELOG.md"],
-  "engines": { "node": ">=18.0.0" },
+  "bin": {
+    "ba2db": "bin/ba2db.mjs"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "skill/",
+    "README.md",
+    "README.vi.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "test": "node test/run.mjs",
     "lint:sh": "shellcheck skill/scripts/*.sh install.sh",
