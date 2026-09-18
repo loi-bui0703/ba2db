@@ -5,7 +5,9 @@ on:
     tags: ['v*']
 
 permissions:
-  contents: write
+  contents: read
+  # Required for npm Trusted Publishing: the job mints a short-lived OIDC token
+  # instead of using a long-lived NPM_TOKEN secret.
   id-token: write
 
 jobs:
@@ -13,16 +15,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+
       - uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
+
+      # Trusted Publishing needs npm >= 11.5.1. Upgrade only when the bundled
+      # npm is older, because `npm@latest` is coupled to the Node version:
+      # npm@12 requires node ^22.22.2 || ^24.15.0 || >=26, so a blind
+      # `install -g npm@latest` breaks the moment this job's Node falls behind.
+      - name: Ensure npm supports trusted publishing
+        run: |
+          need=11.5.1
+          have="$(npm --version)"
+          if [ "$(printf '%s\n%s\n' "$need" "$have" | sort -V | head -1)" != "$need" ]; then
+            echo "npm $have is older than $need — upgrading"
+            npm install -g npm@latest
+          fi
+          echo "npm $(npm --version) on node $(node --version)"
+
       - run: node test/run.mjs
+
       - name: Check tag matches package.json version
         run: |
           tag="${GITHUB_REF_NAME#v}"
           pkg="$(node -p "require('./package.json').version")"
           [ "$tag" = "$pkg" ] || { echo "Tag $tag != package.json $pkg"; exit 1; }
-      - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # No NODE_AUTH_TOKEN. Authentication comes from the OIDC token, which npm
+      # exchanges for a short-lived publish credential; provenance is attached
+      # automatically because the identity of the workflow is already proven.
+      # Requires a Trusted Publisher configured on npmjs.com for this package:
+      #   package ba2db -> Settings -> Trusted Publisher
+      #   owner: loi-bui0703  repo: ba2db  workflow: release.yml
+      - run: npm publish --access public
