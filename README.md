@@ -159,7 +159,7 @@ workspace/my-project/
 ├── 03-data-dictionary.md            every column, typed and sourced
 ├── 04-schema.sql                    runnable DDL
 ├── 04-index-plan.md                 each index justified by a real query
-├── 04-migration-notes.md            deployment, roles, backup, PII, ops jobs
+├── 04-migration-notes.md            deployment, roles, RPO/RTO & backup, concurrency, PII, ops jobs
 ├── 05-review-report.md              findings by severity, open questions
 ├── 05-traceability-matrix.md        requirements ⇄ schema, both directions
 ├── 05-app-enforced-rules.md         every rule the database does NOT stop
@@ -178,7 +178,7 @@ See [`examples/ecommerce-mini/`](./examples/ecommerce-mini/) for a filled-in run
 
 ## What it knows
 
-The skill carries ten reference documents it loads only when relevant —
+The skill carries twelve reference documents it loads only when relevant —
 so a stage costs context only for what it actually needs:
 
 | Reference | Covers |
@@ -186,12 +186,14 @@ so a stage costs context only for what it actually needs:
 | `extraction-checklist.md` | 12 signal groups to sweep BA documents for; how to tell an entity from an attribute |
 | `naming-conventions.md` | Naming rules, standard types per DBMS, mandatory audit columns |
 | `normalization.md` | 1NF→BCNF, and the four things you must write down before denormalizing |
-| `modeling-patterns.md` | SCD/versioning, multi-tenancy, party model, hierarchies, i18n, state machines |
+| `modeling-patterns.md` | SCD/versioning, multi-tenancy, party model, hierarchies, i18n, state machines, optimistic locking, erasure vs audit trail |
 | `anti-patterns.md` | EAV, polymorphic FK, god tables, float money, comma-separated values, 16 total |
-| `indexing-and-performance.md` | Index selection, composite column order, partitioning, sizing, write-path cost, queue claim, hot rows |
+| `indexing-and-performance.md` | Index selection, composite column order, partitioning, sizing, write-path cost, queue claim, hot rows, slow-query observability |
+| `concurrency.md` | Isolation level, which rules two concurrent requests can break, unique/EXCLUDE/FOR UPDATE/SERIALIZABLE, optimistic lock, deadlock ordering |
+| `durability-and-availability.md` | RPO/RTO from requirements, backup vs PITR, replica topology and lag budget, read-after-write, failover, restore drill |
 | `dbms-selection.md` | Choosing an engine: drivers from requirements, capability matrix for 4 engines, how selection goes wrong |
 | `dbms-notes.md` | PostgreSQL · MySQL 8 · SQL Server · Oracle dialect differences, and the portability budget |
-| `storage-topology.md` | Queue in the database or a broker, view/MV/real table, enum type or lookup table, archive tiers |
+| `storage-topology.md` | Queue in the database or a broker, outbox/CDC, view/MV/real table, enum type or lookup table, cache invalidation contract, archive tiers |
 | `review-checklist.md` | 9 groups of acceptance checks — the ninth is the adversarial pass that finds new defects |
 
 ## CLI

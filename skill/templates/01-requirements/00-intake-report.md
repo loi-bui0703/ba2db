@@ -26,6 +26,7 @@ Project: `<project-slug>` · Date: `<YYYY-MM-DD>` · Author: `<agent/人>`
 | Peak volume | |
 | Retention | |
 | Legacy system | none / `<mô tả>` |
+| Hệ đang chạy (triển khai lên DB có dữ liệu?) | no / yes — `<mô tả>` |
 
 > Stage 0 **không chọn** DBMS. Ở đây chỉ ghi lại *ràng buộc nền tảng* để
 > Stage 1B lập luận. Điền một engine vào đây là chọn trước khi có dữ kiện.
@@ -39,6 +40,9 @@ Project: `<project-slug>` · Date: `<YYYY-MM-DD>` · Author: `<agent/人>`
 | Giới hạn giấy phép & chi phí | |
 | Framework, ORM, migration runner | |
 | Ràng buộc tuân thủ & vị trí dữ liệu | |
+| Mất dữ liệu chấp nhận được (RPO) | `<thời gian / "chưa biết">` |
+| Thời gian ngừng chấp nhận được (RTO) | `<thời gian / "chưa biết">` |
+| Đã có replica / HA sẵn chưa | |
 
 ## 4. Non-functional flags
 
@@ -51,6 +55,9 @@ Project: `<project-slug>` · Date: `<YYYY-MM-DD>` · Author: `<agent/人>`
 | i18n / multi-language | | |
 | Timezone handling | | |
 | External integrations | | |
+| High availability / failover | | |
+| Quyền xoá dữ liệu cá nhân (erasure) | | |
+| Ghi đồng thời cao / hạn mức phải ép | | |
 
 ## 5. Assumptions · Giả định đã chọn
 

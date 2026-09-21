@@ -1,7 +1,7 @@
 ---
 name: db-design-from-ba
 description: Turn a Business Analysis (BA) document set into a complete, optimized database design. Use when the user provides BA/SRS/requirement documents and asks to extract data requirements, choose a DBMS, build an ER model, normalize a schema, or produce DDL. Trigger on "thiết kế database từ tài liệu BA", "design database from requirements", "ERD từ tài liệu", "data model", "schema design", "DDL".
-version: 1.1.2
+version: 1.2.0
 license: MIT
 triggers:
   - thiết kế database
@@ -96,7 +96,9 @@ Chỉ nạp khi cần:
 - `references/normalization.md` — 1NF→BCNF và khi nào chấp nhận denormalize
 - `references/modeling-patterns.md` — pattern hay dùng (SCD, audit, soft delete, party, i18n, RBAC…)
 - `references/anti-patterns.md` — EAV, polymorphic FK, god table…
-- `references/indexing-and-performance.md` — chiến lược index, partition
+- `references/indexing-and-performance.md` — chiến lược index, partition, chi phí ghi, quan sát được
+- `references/concurrency.md` — mức cô lập, rule nào không ép được khi có hai request, optimistic lock, deadlock
+- `references/durability-and-availability.md` — RPO/RTO, backup & PITR, replica, failover, restore drill
 - `references/dbms-notes.md` — khác biệt giữa PostgreSQL / MySQL / SQL Server / Oracle
 - `references/review-checklist.md` — checklist nghiệm thu cuối (9 nhóm, gồm lượt đọc đối kháng)
 

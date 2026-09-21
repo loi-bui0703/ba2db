@@ -48,12 +48,20 @@
 - [ ] Partition: đã liệt kê `BR-*` mất chỗ ép + job tạo/drop partition
 - [ ] **Mật độ ràng buộc từng bảng đã được xem**; mọi bảng < 0.20 có lời giải thích
       (bảng bằng chứng cố tình lỏng, hay lỗ hổng thật?) — `check-design.sh §8`
+- [ ] **Truy vấn nóng đã `EXPLAIN` trên dữ liệu đủ lớn** — hoặc ghi rõ *chưa kiểm*
+- [ ] Log truy vấn chậm có ngưỡng lấy từ `VP-*`; có cách tìm index không ai dùng
+- [ ] Nếu có cache: đã chốt cách ghi, TTL/vô hiệu hoá, và **`BR-*` nào KHÔNG được
+      đọc từ cache** (hạn mức, chống trùng, đối soát tiền)
 
 ## 6. Bảo mật & tuân thủ
 - [ ] Đã đánh dấu cột PII; có phương án mã hóa/masking
 - [ ] Audit trail đáp ứng `NF-*`
 - [ ] Multi-tenant: `tenant_id` nằm trong mọi unique/index chính
 - [ ] Không lưu mật khẩu/bí mật dạng rõ
+- [ ] Nếu `NF-*` có quyền xoá dữ liệu cá nhân: đã chọn cách (tách PII /
+      crypto-shredding / ẩn danh), ghi rõ **cái gì buộc phải giữ** và bản sao lưu
+      xử lý thế nào — `modeling-patterns.md §14`
+- [ ] Audit log **không** chép giá trị cột đã đánh dấu PII vào `old/new_value`
 
 ## 7. Vận hành
 - [ ] DDL chạy được (đã thử) hoặc ghi rõ **chưa thử**
@@ -65,6 +73,18 @@
       cơ chế phát hiện thiếu
 - [ ] **Ngân sách khả chuyển** đã ghi; risk của assumption engine đánh giá theo
       số `BR-*` phụ thuộc tính năng độc quyền (≥3 ⇒ High)
+- [ ] **RPO và RTO có con số** theo nhóm bảng, trỏ về `BR-*`/`NF-*`; phương tiện
+      backup **đủ** cho RPO đó (full backup hàng đêm ≠ RPO 5 phút)
+- [ ] **Restore drill có trạng thái** `verified / partial / not tested` — không bỏ
+      trống; `verified` phải có thời gian restore đo được
+- [ ] Replica: đồng bộ/bất đồng bộ, ngân sách độ trễ, **báo cáo nào KHÔNG chịu
+      được dữ liệu cũ**, và cách xử lý read-after-write cho `PR-*` "tạo xong xem ngay"
+- [ ] Failover: ai phát hiện, ai chuyển, ứng dụng tìm primary mới bằng gì
+- [ ] Giả định **một node ghi** đã ghi ra kèm ngưỡng phải xem lại
+- [ ] **Mức cô lập giả định** đã ghi; mọi `BR-*` lớp A/B/C có cơ chế ép, không chỉ `CHECK`
+- [ ] Thao tác phải retry (deadlock/serialization) có trong `05-app-enforced-rules.md`
+- [ ] Nếu triển khai lên hệ đang chạy: mỗi thay đổi schema đã chọn chạy thẳng hay
+      expand/contract; downtime (nếu có) ghi kèm con số và so với RTO
 
 ## 8. Tài liệu & đặt tên
 - [ ] Đặt tên nhất quán theo `naming-conventions.md`, không dùng từ khóa SQL
@@ -87,7 +107,12 @@ nhận** — hoặc chứng minh được là đã thử và không tìm ra (nó
 - [ ] **Hai cách biểu diễn cùng một sự thật**: cột nào có thể bất đồng với cột nào?
 - [ ] **Job không chạy**: với mỗi job ở `04-migration-notes.md §7`, dữ liệu sai thế nào?
 - [ ] **Hai tiến trình đồng thời**: hai request cùng lúc có vượt được hạn mức /
-      tạo bản ghi trùng / lấy trùng việc trong hàng đợi không?
+      tạo bản ghi trùng / lấy trùng việc trong hàng đợi không? Trả lời bằng
+      `references/concurrency.md §2–3`, không bằng "đã kiểm, ổn"
+- [ ] **Hai màn hình sửa cùng bản ghi**: người lưu sau ghi đè người lưu trước mà
+      không ai biết — bảng nào cần `version`?
+- [ ] **Restore rồi thì sao**: phục hồi về đúng mốc RPO xong, dữ liệu có còn nhất
+      quán với hệ ngoài (đã gửi email/thanh toán cho thứ vừa bị cuốn lại) không?
 - [ ] **Đọc rule đúng câu chữ**: rule nào áp dụng nguyên văn thì cho kết quả vô
       nghĩa cho một nhóm dữ liệu? (kênh không bao giờ báo thành công, khách
       không có địa chỉ, kỳ đầu tiên chưa có kỳ trước…)

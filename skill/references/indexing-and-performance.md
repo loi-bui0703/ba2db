@@ -94,6 +94,31 @@ Vòng đời partition là **job**, không phải cấu hình: tạo trước N 
 còn ít), drop theo retention. Không nên có `DEFAULT` partition — nó âm thầm hút
 những dòng lẽ ra phải fail, và tách nó ra sau này cần quét toàn bảng.
 
+## Quan sát được — làm sao biết kế hoạch index đã sai
+
+Bảng index ở Stage 4 là một **dự đoán**: truy vấn này sẽ dùng index kia. Dự đoán
+sai theo thời gian (dữ liệu lệch đi, thống kê cũ, truy vấn mới do tính năng mới),
+và không có gì trong bản thiết kế tự phát hiện điều đó. Bàn giao kế hoạch index
+mà không bàn giao **cách phát hiện nó sai** là bàn giao một nửa.
+
+Ba thứ phải ghi vào `04-migration-notes.md`, mỗi thứ một dòng:
+
+| Phải bật | PostgreSQL | MySQL 8 | Dùng để trả lời |
+|---|---|---|---|
+| Log truy vấn chậm | `log_min_duration_statement` | `slow_query_log` + `long_query_time` | truy vấn nào vượt SLA ở `VP-*` |
+| Thống kê truy vấn tích luỹ | `pg_stat_statements` | `performance_schema` events statements | truy vấn nào **tổng** tốn nhất (thường không phải cái chậm nhất) |
+| Index không ai dùng | `pg_stat_user_indexes.idx_scan = 0` | `sys.schema_unused_indexes` | index nào chỉ còn là chi phí ghi |
+
+**Ngưỡng log chậm phải lấy từ `VP-*`**, không lấy mặc định: nếu `VP-*` nói "báo
+cáo dưới 2 giây" thì ngưỡng là 2 giây, và mỗi dòng log là một vi phạm SLA đã
+được ghi thành requirement — không phải "một truy vấn hơi chậm".
+
+Với mỗi truy vấn nóng trong bảng index plan, cách kiểm duy nhất đáng tin là chạy
+`EXPLAIN (ANALYZE, BUFFERS)` **trên dữ liệu có khối lượng thật** (hoặc ít nhất
+đã sinh đủ dòng theo `VP-*`). Trên bảng rỗng, planner chọn seq scan cho mọi thứ
+và bảng index plan sẽ "đúng" một cách vô nghĩa. Chưa chạy được thì ghi **chưa
+kiểm**, cùng quy tắc ba trạng thái như `validate-ddl.sh` exit 2.
+
 ## Checklist hiệu năng trước khi chốt
 
 - [ ] Mỗi báo cáo trong `VP-*` có đường index rõ ràng
@@ -108,3 +133,5 @@ những dòng lẽ ra phải fail, và tách nó ra sau này cần quét toàn b
 - [ ] Bảng hàng đợi có cơ chế claim (`SKIP LOCKED` / lease), không chỉ index partial
 - [ ] Bảng partition: đã liệt kê `BR-*` mất chỗ ép + job tạo/drop partition
 - [ ] Báo cáo nào **không** chịu được dữ liệu cũ đã được nói rõ
+- [ ] Log truy vấn chậm có ngưỡng lấy từ `VP-*`; có cách tìm index không ai dùng
+- [ ] Truy vấn nóng đã `EXPLAIN` trên dữ liệu đủ lớn — hoặc ghi rõ **chưa kiểm**

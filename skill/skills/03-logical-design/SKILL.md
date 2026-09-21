@@ -1,6 +1,6 @@
 ---
 name: db-design-03-logical-design
-description: Stage 3 — normalize the conceptual model into a logical schema: tables, keys, data types, constraints, and a full data dictionary.
+description: "Stage 3 — normalize the conceptual model into a logical schema: tables, keys, data types, constraints, and a full data dictionary."
 stage: 3
 inputs: 02-conceptual-erd.md, 01-data-requirements.md, 01b-dbms-decision.md
 outputs: 03-logical-schema.md, 03-data-dictionary.md
@@ -65,6 +65,20 @@ Theo `references/naming-conventions.md`:
   (và ngược lại nếu nghiệp vụ đòi). Không có ràng buộc này thì
   `status='DELIVERED'` với `sent_at IS NULL` là một dòng hợp lệ — và mọi job
   hay báo cáo đọc timestamp đó đều sai một cách âm thầm.
+- **Rule phải đọc dòng khác thì `CHECK` không ép được.** Bất kỳ `BR-*` nào cần
+  nhìn sang dòng khác để quyết định dòng này hợp lệ — "tối đa N", "duy nhất",
+  "không chồng lấn khoảng" — đều bị vượt khi có hai request cùng lúc, kể cả khi
+  code trông đúng. Phân lớp ngay ở đây (**A** hạn mức · **B** duy nhất kiểm bằng
+  `SELECT` rồi `INSERT` · **C** chồng lấn khoảng) và ghi vào cột ràng buộc; Stage
+  4 chốt cơ chế. Xem `references/concurrency.md §2`.
+- **Bảng nào cần cột `version` (optimistic lock).** Bản ghi có màn hình sửa dùng
+  chung bởi nhiều người: người lưu sau ghi đè người lưu trước và **không lỗi nào
+  được báo**. Quyết định ở đây, không để Stage 4 tự thêm —
+  `references/modeling-patterns.md §13`.
+- **PII + quyền xoá.** Nếu `NF-*` vừa đòi audit trail đầy đủ vừa đòi xoá được dữ
+  liệu cá nhân, hai yêu cầu đó mâu thuẫn và **định hình schema** (tách PII ra
+  bảng riêng là cách thường đúng) — quyết ở Stage 3, không vá ở Stage 5.
+  `references/modeling-patterns.md §14`.
 
 ## Bước 5 — Data dictionary
 
@@ -83,6 +97,9 @@ Thêm hai lượt quét ngắn:
 - **Hàng đợi**: nếu `01b-dbms-decision.md` §5 chốt là queue-in-database, bảng
   hàng đợi đã có cơ chế nhận việc (claim) chưa — `FOR UPDATE SKIP LOCKED` hay
   cột lease? Xem `references/storage-topology.md §1`.
+- **Đồng thời**: mọi `BR-*` phải đọc dòng khác đã được phân lớp A/B/C chưa? Rule
+  nào chỉ có `CHECK` đứng một mình là rule đã mất chỗ ép —
+  `references/concurrency.md §2`.
 
 ## Artifact & Gate
 

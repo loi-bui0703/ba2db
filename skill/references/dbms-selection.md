@@ -29,6 +29,8 @@ trong `01-data-requirements.md`. Driver không có ID là sở thích, phải gh
 | Địa lý / tìm kiếm chuỗi | `VP-*` bản đồ, full-text | PostGIS, trigram, full-text engine |
 | Phân tích | `VP-*` báo cáo đa chiều | replica, columnar, MV tăng dần |
 | Tính đúng của tiền | `BR-*` công thức tiền | decimal đúng, generated column, không float |
+| Đồng thời | `BR-*` "tối đa N", "không trùng", "không chồng lấn" + `VP-*` ghi/giây | partial unique, `EXCLUDE`, `SKIP LOCKED`, `SERIALIZABLE` dùng được thật |
+| Độ bền & sẵn sàng | `NF-*` thời gian ngừng / dữ liệu được phép mất (RPO·RTO) | PITR, replica đồng bộ, failover tự động, công cụ backup đội đã biết dùng |
 
 ## 2. Ràng buộc bối cảnh — ghi thành ràng buộc, đừng ngụy trang thành lập luận
 
@@ -36,7 +38,9 @@ Những thứ này **hợp lệ** và thường quyết định hơn cả tính 
 là ràng buộc, không được viết như thể là kết luận kỹ thuật:
 
 - **Đội vận hành đang chạy gì.** Một engine không ai biết backup/restore là rủi
-  ro vận hành lớn hơn mọi tính năng nó có.
+  ro vận hành lớn hơn mọi tính năng nó có. Nếu `NF-*` có RPO/RTO, đây là chỗ
+  kiểm: engine này **đội đã restore thử bao giờ chưa** —
+  `references/durability-and-availability.md §5`.
 - **Giấy phép & chi phí.** Oracle/SQL Server tính theo core; MySQL/PostgreSQL không.
 - **Nền tảng cloud đã chốt.** RDS/Cloud SQL/Azure SQL giới hạn extension và version.
 - **Framework & ORM.** Cái gì đã có driver, migration runner, connection pool sẵn.
@@ -66,6 +70,11 @@ tách rời, người review gạch được từng phần.
 | Temporal / system-versioned table | ✗ (làm tay) | ✗ | ✓ | ✓ (Flashback) |
 | Full-text / trigram | ✓ + `pg_trgm` | ✓ | ✓ | ✓ |
 | Địa lý | ✓ PostGIS | ~ | ✓ | ✓ |
+| **PITR (phục hồi tới một thời điểm)** | ✓ WAL archive | ✓ binlog | ✓ log backup | ✓ |
+| **Replica đồng bộ (RPO ≈ 0)** | ✓ synchronous_commit | ✓ semi-sync / Group Replication | ✓ AlwaysOn sync | ✓ Data Guard SYNC |
+| **Failover tự động (không thêm hạ tầng)** | ✗ (Patroni/managed) | ~ (InnoDB Cluster) | ✓ (AlwaysOn AG) | ✓ (Data Guard + FSFO) |
+| **`SKIP LOCKED`** | ✓ (9.5+) | ✓ (8.0+) | ~ (`READPAST`) | ✓ (`SKIP LOCKED`) |
+| **`SERIALIZABLE` thật sự dùng được** | ✓ (SSI, cần retry) | ~ (lock-based, dễ deadlock) | ~ (lock-based) | ✗ (snapshot, không phải serializable đầy đủ) |
 | Columnar / analytics tại chỗ | ✗ (extension) | ✗ | ✓ (columnstore) | ✓ |
 | Giấy phép mở | ✓ | ✓ (GPL/thương mại) | ✗ | ✗ |
 
@@ -92,7 +101,8 @@ người review kiểm được từng dòng.
 ## 5. Một engine thường không phải cả câu trả lời
 
 Xem `references/storage-topology.md`. Ở bước này chỉ cần **đánh dấu** các thành
-phần bổ trợ có thể cần (hàng đợi, cache, tìm kiếm, phân tích, lưu trữ lạnh) và
+phần bổ trợ có thể cần (hàng đợi, cache, tìm kiếm, phân tích, lưu trữ lạnh,
+replica đọc/HA) và
 nói rõ cái nào **được quyết định trong phạm vi thiết kế database này**, cái nào
 là quyết định kiến trúc nằm ngoài. Đừng âm thầm giả định "mọi thứ nằm trong DB".
 

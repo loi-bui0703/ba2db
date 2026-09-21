@@ -64,12 +64,61 @@ Nếu `VP-*` có hai mốc retention khác nhau, hoặc tài liệu nhắc "lưu
 archive là **một phần của thiết kế**, không phải việc tính sau —
 `references/storage-topology.md §4`.
 
+Nếu thiết kế này triển khai lên một hệ **đang chạy** (không phải database mới),
+mỗi thay đổi schema phải chọn một dòng ở `04-migration-notes.md §1b`: chạy thẳng
+được, hay cần expand/contract. Thêm một cột `NOT NULL` vào bảng nóng là cách phổ
+biến nhất để một thiết kế đúng gây ra downtime — nó khoá bảng để ghi giá trị cho
+mọi dòng. Mỗi bước phải chạy được **cùng lúc với cả phiên bản ứng dụng cũ và
+mới**; bước nào không thoả là downtime, và downtime phải được ghi kèm con số để
+so với RTO.
+
 ## Bước 4 — Vận hành
 
 `04-migration-notes.md` ghi: thứ tự triển khai, migration từ hệ thống cũ (nếu
-có legacy schema ở Stage 0), kế hoạch backup/retention, phân quyền DB role,
-mã hóa cột PII theo `NF-*`, **ngân sách khả chuyển** (`references/dbms-notes.md
-§Portability budget`).
+có legacy schema ở Stage 0), phân quyền DB role, mã hóa cột PII theo `NF-*`,
+**ngân sách khả chuyển** (`references/dbms-notes.md §Portability budget`).
+
+### Bước 4a — Độ bền & sẵn sàng: viết **mục tiêu**, không chỉ viết phương tiện
+
+"Full backup hàng đêm" là phương tiện. Yêu cầu là **RPO** (được phép mất bao
+nhiêu dữ liệu) và **RTO** (được phép ngừng bao lâu), và hai con số đó phải trỏ
+về `BR-*`/`NF-*`. Một chính sách backup không có RPO thì không ai kiểm được là
+nó đủ hay thiếu — 24 giờ dữ liệu mất là chấp nhận được hay là thảm hoạ?
+
+Điền `04-migration-notes.md §4` theo `references/durability-and-availability.md`:
+mục tiêu theo nhóm bảng, phương tiện backup **đủ cho mục tiêu đó**, replica
+topology kèm ngân sách độ trễ, failover, và restore drill.
+
+> **Restore drill theo quy tắc ba trạng thái** — đúng quy tắc mà Bước 5 áp cho
+> DDL: `verified` / `partial` / **`not tested`**. Backup chưa restore thử thì
+> chưa biết là backup. `not tested` là câu trả lời hợp lệ; im lặng thì không.
+
+Hai thứ hay bị bỏ khi đã có replica đọc: **read-after-write** (`PR-*` dạng "tạo
+xong xem ngay" đọc trúng replica và không thấy dữ liệu vừa tạo) và danh sách
+**báo cáo không chịu được dữ liệu cũ**. Cả hai phải được ghi bằng câu.
+
+Giả định mặc định của bộ skill này là **một node ghi**. Nó vẫn phải được ghi ra
+kèm ngưỡng phải xem lại — im lặng không phải là một giả định được ghi.
+
+### Bước 4c — Đồng thời: rule nào không ép được khi có hai request
+
+`review-checklist.md §9` hỏi "hai request cùng lúc có vượt được hạn mức không".
+Trả lời được câu đó là việc của Stage 4, theo `references/concurrency.md`:
+
+1. Ghi **mức cô lập giả định** — mặc định khác nhau theo engine, nên giả định
+   không ghi ra là giả định sai ở engine khác.
+2. Phân lớp mọi `BR-*` phải **đọc dòng khác** để quyết định dòng này hợp lệ:
+   **A** hạn mức/đếm · **B** duy nhất kiểm bằng `SELECT` rồi `INSERT` ·
+   **C** không chồng lấn khoảng. Rule chỉ nhìn trong một dòng thì an toàn.
+3. Chọn cơ chế, **ưu tiên ràng buộc khai báo hơn khoá tường minh**: unique index
+   (kể cả partial / trên cột sinh) → `EXCLUDE` → `SELECT … FOR UPDATE` trên dòng
+   cha → `SERIALIZABLE` + retry ở ứng dụng.
+4. Quy ước **thứ tự khoá** (batch update không `ORDER BY` là deadlock chờ sẵn) và
+   ghi thao tác nào ứng dụng phải retry vào `05-app-enforced-rules.md`.
+
+> Một `CHECK` **không** ép được lớp A: nó chỉ nhìn một dòng, không đếm được dòng
+> khác. Thấy `CHECK` đứng một mình cho một rule dạng "tối đa N" là thấy một rule
+> đã mất chỗ ép mà chưa ai ghi nhận.
 
 ### Bước 4b — Đăng ký job vận hành mà schema phụ thuộc
 
@@ -141,6 +190,12 @@ không ép đúng cái nó phải ép. Ghi kết quả vào `04-migration-notes.
 
 Đừng để việc này thành ad-hoc: file assertion là artifact bàn giao, đội phát
 triển chạy lại được sau mỗi lần sửa schema.
+
+Với `BR-*` đã phân lớp A/B/C ở Bước 4c, một khẳng định chạy **tuần tự trong một
+session không chứng minh được gì** — lớp A và C chỉ hỏng khi có hai session.
+Thử được thì thử hai session song song; không thử được thì ghi thẳng
+*"`BR-xxx`: cơ chế là `<…>`, **chưa thử đồng thời**"*, cùng quy tắc ba trạng thái
+như exit 2.
 
 ## Bước 6 — Back-propagate: sửa lại stage trước khi thực tế nói khác
 

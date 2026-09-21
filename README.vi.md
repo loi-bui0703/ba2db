@@ -156,7 +156,7 @@ workspace/my-project/
 ├── 03-data-dictionary.md            mọi cột, có kiểu và có nguồn
 ├── 04-schema.sql                    DDL chạy được
 ├── 04-index-plan.md                 mỗi index có một truy vấn thật biện minh
-├── 04-migration-notes.md            triển khai, phân quyền, backup, PII, job vận hành
+├── 04-migration-notes.md            triển khai, phân quyền, RPO/RTO & backup, đồng thời, PII, job vận hành
 ├── 05-review-report.md              findings theo mức độ, câu hỏi còn mở
 ├── 05-traceability-matrix.md        requirement ⇄ schema, cả hai chiều
 ├── 05-app-enforced-rules.md         mọi rule mà database KHÔNG chặn
@@ -177,7 +177,7 @@ chạy hoàn chỉnh trông như thế nào.
 
 ## Skill này biết những gì
 
-Mười tài liệu tra cứu, **chỉ nạp khi cần** — nên mỗi giai đoạn chỉ tốn context
+Mười hai tài liệu tra cứu, **chỉ nạp khi cần** — nên mỗi giai đoạn chỉ tốn context
 cho đúng phần nó dùng:
 
 | Tài liệu | Nội dung |
@@ -185,12 +185,14 @@ cho đúng phần nó dùng:
 | `extraction-checklist.md` | 12 nhóm tín hiệu cần quét; cách phân biệt entity với attribute |
 | `naming-conventions.md` | Quy ước đặt tên, kiểu dữ liệu chuẩn theo từng DBMS, cột audit bắt buộc |
 | `normalization.md` | 1NF→BCNF, và bốn thứ phải ghi ra trước khi denormalize |
-| `modeling-patterns.md` | SCD/versioning, multi-tenant, party model, cây phân cấp, i18n, state machine |
+| `modeling-patterns.md` | SCD/versioning, multi-tenant, party model, cây phân cấp, i18n, state machine, optimistic lock, xoá dữ liệu cá nhân vs audit trail |
 | `anti-patterns.md` | EAV, polymorphic FK, god table, float cho tiền… tổng 16 mục |
-| `indexing-and-performance.md` | Chọn index, thứ tự cột composite, partition, dung lượng, chi phí đường ghi, cơ chế nhận việc, khoá hàng nóng |
+| `indexing-and-performance.md` | Chọn index, thứ tự cột composite, partition, dung lượng, chi phí đường ghi, cơ chế nhận việc, khoá hàng nóng, log truy vấn chậm |
+| `concurrency.md` | Mức cô lập, rule nào bị vượt khi có hai request, unique/EXCLUDE/FOR UPDATE/SERIALIZABLE, optimistic lock, thứ tự khoá |
+| `durability-and-availability.md` | RPO/RTO lấy từ requirement, backup vs PITR, replica và ngân sách độ trễ, read-after-write, failover, restore drill |
 | `dbms-selection.md` | Chọn engine: driver lấy từ requirement, bảng năng lực 4 engine, bốn cách chọn sai kinh điển |
 | `dbms-notes.md` | Khác biệt PostgreSQL · MySQL 8 · SQL Server · Oracle, và ngân sách khả chuyển |
-| `storage-topology.md` | Hàng đợi trong DB hay broker, view/MV/bảng thật, enum hay bảng danh mục, lưu trữ lạnh |
+| `storage-topology.md` | Hàng đợi trong DB hay broker, outbox/CDC, view/MV/bảng thật, enum hay bảng danh mục, hợp đồng cache, lưu trữ lạnh |
 | `review-checklist.md` | 9 nhóm kiểm tra nghiệm thu — nhóm thứ 9 là lượt đọc đối kháng, đi tìm lỗi mới |
 
 ## CLI

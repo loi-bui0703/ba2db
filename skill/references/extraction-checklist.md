@@ -22,8 +22,8 @@ OPEN QUESTION.
 | 8 | Thời gian & lịch sử | "tại thời điểm", "lịch sử thay đổi", hiệu lực từ–đến | versioning/SCD |
 | 9 | Quyền & vai trò | ai xem/sửa được gì, phân quyền theo đơn vị | RBAC, row-level scope |
 | 10 | Báo cáo & truy vấn | mọi báo cáo, dashboard, bộ lọc, export | `VP-*`, index |
-| 11 | Khối lượng & tần suất | số user, giao dịch/ngày, thời gian lưu | `VP-*`, partition |
-| 12 | Tuân thủ & tích hợp | PII, audit log, luật, API/file trao đổi với hệ thống khác | `NF-*` |
+| 11 | Khối lượng & tần suất | số user, giao dịch/ngày, thời gian lưu, **ghi đồng thời/giây** | `VP-*`, partition, lớp đồng thời |
+| 12 | Tuân thủ & tích hợp | PII, audit log, luật, API/file trao đổi với hệ thống khác, **quyền xoá dữ liệu cá nhân**, **thời gian ngừng/mất dữ liệu chấp nhận được** | `NF-*`, RPO/RTO |
 
 ## B. Danh từ này là gì?
 
@@ -44,7 +44,12 @@ OPEN QUESTION.
 5. Có duy nhất không — duy nhất trong phạm vi nào (toàn hệ thống / theo tenant / theo năm)?
 6. Đơn vị đo / đơn vị tiền tệ / múi giờ là gì?
 7. Dữ liệu này giữ bao lâu?
-8. Ai được xem? Có dữ liệu cá nhân không?
+8. Ai được xem? Có dữ liệu cá nhân không? Chủ thể có quyền **yêu cầu xoá** không
+   — và cái gì buộc phải giữ lại dù có yêu cầu xoá?
+9. Hai người cùng làm việc này một lúc thì sao? ("tối đa N", "duy nhất", "không
+   được trùng lịch" — xem `references/concurrency.md §2`)
+10. Hỏng thì được phép **mất bao nhiêu dữ liệu** và **ngừng bao lâu**? (RPO/RTO)
+11. Báo cáo này có chịu được dữ liệu cũ vài giây không?
 
 ## D. Dấu hiệu checklist đang làm hại thay vì giúp
 

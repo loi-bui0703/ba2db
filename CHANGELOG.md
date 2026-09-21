@@ -14,6 +14,71 @@ Because this package is mostly instructions rather than code, we version it by
   richer but existing artifacts stay valid.
 - **PATCH** — wording, fixes, documentation.
 
+## [1.2.0] — 2026-09-21
+
+### Added
+
+- **`references/durability-and-availability.md`.** The design could specify a
+  backup policy without ever stating what it was for. "Full backup nightly" is a
+  *means*; RPO and RTO are the *requirement*, and without them nobody can tell
+  whether losing 24 hours of data is acceptable or catastrophic. The new
+  reference makes both numbers come from `BR-*`/`NF-*`, per table group, and
+  checks the means against them. It also covers replica topology with a lag
+  budget, the read-after-write trap ("create, then view" reading a replica),
+  failover ownership, and the single-writer assumption — which the skill always
+  made and never wrote down.
+- **A restore drill under the same three-state honesty rule as the DDL.**
+  `validate-ddl.sh` exit 2 already forbids writing "DDL is valid" when nothing
+  ran. Backups had no equivalent: a policy could be documented in full and never
+  proven. Restore status is now `verified` / `partial` / **`not tested`**, and
+  `not tested` is a valid answer that must appear in the Stage 5 report.
+- **`references/concurrency.md`.** Review checklist §9 asked "can two concurrent
+  requests exceed a quota?" and gave the agent no way to answer it. It now
+  classifies every `BR-*` that must read another row — **A** quota/count, **B**
+  uniqueness checked with `SELECT`-then-`INSERT`, **C** overlapping ranges — and
+  names the four remedies in priority order (unique index → `EXCLUDE` →
+  `SELECT … FOR UPDATE` → `SERIALIZABLE` + retry). A `CHECK` cannot enforce
+  class A: it sees one row and cannot count others.
+- **Optimistic locking (`modeling-patterns.md §13`)** for the lost update that
+  raises no error at all — two edit screens, the second save silently discards
+  the first.
+- **Erasure vs audit trail (`modeling-patterns.md §14`).** When `NF-*` demands
+  both a full audit trail and the right to delete personal data, the two
+  requirements contradict each other and the resolution *shapes the schema*
+  (usually PII in its own table). This is a Stage 3 decision, not a Stage 5 patch.
+- **Outbox/CDC is now defined.** `storage-topology.md` told the agent a broker
+  "needs outbox/CDC" and never said what either one is — a dangling pointer.
+  §1b now gives the mechanism, the at-least-once consequence, ordering, and
+  outbox cleanup as a registered job.
+- **A cache contract (`storage-topology.md §5b`).** "Use Redis" was treated as a
+  decision; the decisions are write strategy, expiry, key derivation, and which
+  `BR-*` may **not** be read from cache (quotas, dedupe, money reconciliation).
+- **Zero-downtime schema change (`04-migration-notes.md §1b`).** Migration notes
+  covered legacy→new migration but not *evolving a live schema*. Adding a
+  `NOT NULL` column to a hot table is the most common way a correct design
+  causes an outage; each change now picks "runs straight through" or
+  expand/contract, and any downtime is written with a number and compared to RTO.
+- **Index-plan observability (`indexing-and-performance.md`).** An index plan is
+  a prediction that decays. Slow-query logging (threshold taken from `VP-*`, not
+  a default), cumulative statement stats, and unused-index detection are now
+  handed over with the plan — plus the rule that `EXPLAIN` on an empty table
+  proves nothing.
+
+### Changed
+
+- Stage 1B marks HA and concurrency capability as **elimination criteria**, not
+  operational detail; the capability matrix gained PITR, synchronous replica,
+  automatic failover, `SKIP LOCKED`, and whether `SERIALIZABLE` is usable.
+- Stage 3 classifies concurrency-sensitive `BR-*`, decides which tables need
+  `version`, and settles PII-vs-erasure before the physical stage.
+- Stage 4 gained step 4a (durability & availability) and 4c (concurrency), and
+  step 5b now requires concurrent assertions for class A/B/C rules — or the
+  explicit words "not tested concurrently".
+- The extraction checklist sweeps for concurrent writes, erasure rights, and
+  acceptable loss/downtime; the intake report captures RPO, RTO, existing HA,
+  and whether this deploys onto a running system.
+- Review checklist groups 5, 6, 7 and 9 gained the matching acceptance items.
+
 ## [1.1.2] — 2026-09-18
 
 ### Fixed

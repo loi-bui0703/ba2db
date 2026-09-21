@@ -293,3 +293,89 @@ test('the double-encoded-lifecycle threshold is the same in the skill and the sc
       'a tool that is looser than its own rule fails open',
   );
 });
+
+// --- regression guards for durability/availability and concurrency (1.2.0) ---
+
+// A backup policy without a target is unreviewable: nobody can say whether
+// losing a night of data is acceptable. The means must be checked against a
+// requirement, not stand in for one.
+test('durability is stated as a target (RPO/RTO), not only as a backup policy', () => {
+  const d = readFileSync(join(SKILL, 'references/durability-and-availability.md'), 'utf8');
+  assert.match(d, /RPO/, 'the acceptable data loss must be a named number');
+  assert.match(d, /RTO/, 'the acceptable downtime must be a named number');
+  assert.match(d, /read-after-write/i, 'a read replica silently breaks "create, then view"');
+  assert.match(d, /failover/i, 'who fails over, and how the app finds the new primary');
+
+  const tpl = readFileSync(join(SKILL, 'templates/04-physical/04-migration-notes.md'), 'utf8');
+  assert.match(tpl, /RPO/, 'the template must have somewhere to record the target');
+  assert.match(tpl, /RTO/);
+});
+
+// Same honesty rule as validate-ddl.sh exit 2, applied to backups: a policy
+// that was never restored is a claim without evidence.
+test('restore status has the three-state honesty rule, not a silent pass', () => {
+  const d = readFileSync(join(SKILL, 'references/durability-and-availability.md'), 'utf8');
+  const tpl = readFileSync(join(SKILL, 'templates/04-physical/04-migration-notes.md'), 'utf8');
+  for (const [name, body] of [['reference', d], ['migration template', tpl]]) {
+    assert.match(body, /not tested/i, `${name} must allow "not tested" as a valid answer`);
+    assert.match(body, /verified/i, `${name} must distinguish a proven restore`);
+  }
+  const chk = readFileSync(join(SKILL, 'references/review-checklist.md'), 'utf8');
+  assert.match(chk, /[Rr]estore drill/, 'stage 5 must grade the restore drill, not just the backup policy');
+});
+
+// Checklist group 9 asked whether two concurrent requests can break a rule and
+// gave no way to answer. The classes and the remedies are the answer.
+test('concurrency reference makes review-checklist §9 answerable', () => {
+  const c = readFileSync(join(SKILL, 'references/concurrency.md'), 'utf8');
+  assert.match(c, /Read Committed/, 'the assumed isolation level must be named per engine');
+  assert.match(c, /FOR UPDATE/, 'explicit row locking is one of the remedies');
+  assert.match(c, /SERIALIZABLE/, 'and the last resort, which obliges the app to retry');
+  assert.match(c, /retry/i, 'SERIALIZABLE without retry only trades one error for another');
+  assert.match(c, /deadlock/i, 'lock ordering is a design decision, not an ops surprise');
+
+  const s3 = readFileSync(join(SKILL, 'skills/03-logical-design/SKILL.md'), 'utf8');
+  assert.match(s3, /concurrency\.md/, 'stage 3 must classify the rules that read other rows');
+  const s4 = readFileSync(join(SKILL, 'skills/04-physical-design/SKILL.md'), 'utf8');
+  assert.match(s4, /concurrency\.md/, 'stage 4 must pick the mechanism');
+});
+
+// storage-topology told the agent a broker "needs outbox/CDC" and never said
+// what either one was — a pointer to nothing.
+test('outbox/CDC and the cache contract are defined, not just name-dropped', () => {
+  const t = readFileSync(join(SKILL, 'references/storage-topology.md'), 'utf8');
+  assert.match(t, /at-least-once/i, 'outbox delivers at-least-once, so consumers must be idempotent');
+  assert.match(t, /CDC/, 'the alternative mechanism must be described, not only named');
+  assert.match(t, /TTL/, 'a cache needs an expiry contract taken from VP-*');
+  assert.match(t, /một node ghi/, 'the single-writer assumption must be written down, not assumed silently');
+});
+
+// Adding NOT NULL to a hot table is the most common way a correct design takes
+// the system down.
+test('schema changes onto a running system have an expand/contract path', () => {
+  const tpl = readFileSync(join(SKILL, 'templates/04-physical/04-migration-notes.md'), 'utf8');
+  assert.match(tpl, /NOT NULL/, 'the NOT-NULL-on-a-hot-table trap must be called out');
+  assert.match(tpl, /CONCURRENTLY/, 'index creation must not lock writes');
+  assert.match(tpl, /backfill/i, 'expand/contract needs a backfill step with a batch size');
+});
+
+// An index plan is a prediction. Handing it over without a way to learn it was
+// wrong hands over half the work.
+test('the index plan ships with a way to detect that it went wrong', () => {
+  const idx = readFileSync(join(SKILL, 'references/indexing-and-performance.md'), 'utf8');
+  assert.match(idx, /EXPLAIN/, 'the plan must be checked against the real planner');
+  assert.match(idx, /pg_stat_statements|slow_query_log/, 'slow queries must be observable in production');
+  assert.match(idx, /VP-\*/, 'the slow-query threshold comes from the requirement, not a default');
+});
+
+// Both obligations are real and they contradict each other; the resolution
+// changes where columns live, so it belongs in the logical stage.
+test('erasure vs audit trail is treated as a schema-shaping conflict', () => {
+  const m = readFileSync(join(SKILL, 'references/modeling-patterns.md'), 'utf8');
+  assert.match(m, /version/, 'optimistic locking needs a version column, not updated_at');
+  assert.match(m, /audit/i, 'the audit trail is the half that cannot simply be deleted');
+  assert.match(m, /PII/, 'separating PII is usually how both obligations are met');
+
+  const s3 = readFileSync(join(SKILL, 'skills/03-logical-design/SKILL.md'), 'utf8');
+  assert.match(s3, /modeling-patterns\.md §14/, 'stage 3 must decide it, not stage 5');
+});

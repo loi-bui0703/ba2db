@@ -77,6 +77,17 @@ này hay không**.
 queue-in-database hay broker — vì nếu là queue-in-database thì Stage 3/4 có
 nghĩa vụ thiết kế cơ chế nhận việc (claim), không được để trống.
 
+Đánh dấu thêm hai thứ, vì chúng **loại ứng viên** chứ không chỉ là chi tiết vận hành:
+
+- **Độ bền & sẵn sàng.** Nếu `NF-*` có RPO/RTO, đối chiếu bảng năng lực §3:
+  engine có PITR không, có replica đồng bộ không, failover tự động có cần thêm
+  hạ tầng không. RPO vài phút mà engine chỉ có full backup hàng đêm là một
+  must-have bị thiếu — `references/durability-and-availability.md §1–2`.
+- **Đồng thời.** Nếu có `BR-*` dạng "tối đa N" / "không chồng lấn" / hàng đợi,
+  kiểm engine có `SKIP LOCKED`, partial unique, `EXCLUDE`, và `SERIALIZABLE`
+  dùng được thật hay không. Thiếu thì rule đó **đẩy xuống tầng ứng dụng** và
+  phải được đếm ở Bước 4 — `references/concurrency.md §3`.
+
 ## Bước 6 — Chốt quyết định
 
 Ghi đủ bốn phần, thiếu phần nào thì ADR vô giá trị:

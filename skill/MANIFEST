@@ -17,6 +17,8 @@ references/normalization.md
 references/modeling-patterns.md
 references/anti-patterns.md
 references/indexing-and-performance.md
+references/concurrency.md
+references/durability-and-availability.md
 references/dbms-notes.md
 references/dbms-selection.md
 references/storage-topology.md
